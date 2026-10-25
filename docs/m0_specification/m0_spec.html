@@ -1,0 +1,1086 @@
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>M0 Relational AI Specification</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+/* ─── Token system ──────────────────────────────────────────────────
+   Layout: single centered column, math/table blocks break wider;
+   authority marks as ruled asides, OPEN conditions in amber.
+   Type: Source Serif 4 body, JetBrains Mono for math/code.
+   ─────────────────────────────────────────────────────────────────── */
+:root {
+  --bg:        #f5f3ee;
+  --bg-lifted: #ffffff;
+  --border:    #d9d4c8;
+  --border-strong: #b8b0a0;
+  --fg:        #16130e;
+  --fg-dim:    #6b6356;
+  --fg-faint:  #9a9185;
+  --accent:    #2b4f82;
+  --accent-bg: #e8eef7;
+  --mono-bg:   #efece6;
+  --math-bg:   #f0ede7;
+  --open-bg:   #fff5e6;
+  --open:      #7a4700;
+  --open-border:#c27f2a;
+  --stop-bg:   #fff0f0;
+  --stop:      #7a1a1a;
+  --stop-border:#c24a4a;
+  --ok:        #1a5c36;
+  --tag-bg:    #e6f0e8;
+  --tag-fg:    #1a5c36;
+  --rule:      #d9d4c8;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #0f1118;
+    --bg-lifted: #171c28;
+    --border:    #272e42;
+    --border-strong: #3a4460;
+    --fg:        #d8d4cc;
+    --fg-dim:    #8892a8;
+    --fg-faint:  #5a6270;
+    --accent:    #6ca0dc;
+    --accent-bg: #131a2a;
+    --mono-bg:   #111520;
+    --math-bg:   #131722;
+    --open-bg:   #1a1200;
+    --open:      #e8a040;
+    --open-border:#8a5c10;
+    --stop-bg:   #1a0808;
+    --stop:      #e07070;
+    --stop-border:#7a2a2a;
+    --ok:        #5aaa78;
+    --tag-bg:    #0e1a12;
+    --tag-fg:    #5aaa78;
+    --rule:      #272e42;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:        #0f1118;
+  --bg-lifted: #171c28;
+  --border:    #272e42;
+  --border-strong: #3a4460;
+  --fg:        #d8d4cc;
+  --fg-dim:    #8892a8;
+  --fg-faint:  #5a6270;
+  --accent:    #6ca0dc;
+  --accent-bg: #131a2a;
+  --mono-bg:   #111520;
+  --math-bg:   #131722;
+  --open-bg:   #1a1200;
+  --open:      #e8a040;
+  --open-border:#8a5c10;
+  --stop-bg:   #1a0808;
+  --stop:      #e07070;
+  --stop-border:#7a2a2a;
+  --ok:        #5aaa78;
+  --tag-bg:    #0e1a12;
+  --tag-fg:    #5aaa78;
+  --rule:      #272e42;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+  font-size: 16px;
+  line-height: 1.72;
+  margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 80px;
+}
+
+/* ─── Cover ─────────────────────────────────────────────────────── */
+.cover {
+  background: var(--accent);
+  color: #fff;
+  padding-left: max(32px, env(safe-area-inset-left, 0px));
+  padding-right: max(32px, env(safe-area-inset-right, 0px));
+  padding-block: 52px 44px;
+  margin-left: calc(-1 * max(16px, env(safe-area-inset-left, 0px)));
+  margin-right: calc(-1 * max(16px, env(safe-area-inset-right, 0px)));
+  margin-bottom: 52px;
+}
+.cover-eyebrow {
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.65;
+  margin-bottom: 14px;
+}
+.cover h1 {
+  font-size: clamp(22px, 4vw, 34px);
+  font-weight: 300;
+  line-height: 1.2;
+  margin: 0 0 6px;
+  letter-spacing: -0.01em;
+  max-width: 640px;
+}
+.cover-sub {
+  font-size: 15px;
+  opacity: 0.7;
+  margin: 0 0 36px;
+  max-width: 560px;
+  font-style: italic;
+}
+.cover-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px 32px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  border-top: 1px solid rgba(255,255,255,0.25);
+  padding-top: 24px;
+}
+.cover-grid dt { opacity: 0.55; text-transform: uppercase; letter-spacing: 0.1em; }
+.cover-grid dd { margin: 0; opacity: 0.9; }
+
+/* ─── Page layout ─────────────────────────────────────────────── */
+.page { max-width: 720px; margin: 0 auto; }
+
+/* Wide track: tables and code blocks can extend further */
+.wide-track { max-width: 860px; margin: 0 auto; }
+
+/* ─── Notices ───────────────────────────────────────────────── */
+.notice {
+  border-left: 3px solid;
+  padding: 12px 18px;
+  border-radius: 0 4px 4px 0;
+  font-size: 14px;
+  margin: 0 0 28px;
+}
+.notice strong { display: block; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; margin-bottom: 4px; font-family: 'JetBrains Mono', monospace; }
+.notice.stop { background: var(--stop-bg); border-color: var(--stop-border); color: var(--stop); }
+.notice.freeze { background: var(--accent-bg); border-color: var(--accent); color: var(--accent); }
+
+/* ─── Section headers ─────────────────────────────────────────── */
+.section-rule {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--fg-faint);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: 8px;
+  margin: 60px 0 24px;
+}
+h2 { font-size: 20px; font-weight: 600; margin: 32px 0 10px; line-height: 1.3; text-wrap: balance; }
+h3 { font-size: 16px; font-weight: 600; margin: 26px 0 8px; color: var(--fg); }
+h4 {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  margin: 20px 0 8px;
+}
+p { margin: 0 0 14px; }
+strong { font-weight: 600; }
+em { font-style: italic; }
+
+/* ─── Math blocks ─────────────────────────────────────────────── */
+.math {
+  background: var(--math-bg);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-strong);
+  border-radius: 0 4px 4px 0;
+  padding: 16px 20px;
+  font-family: 'JetBrains Mono', 'Courier New', monospace;
+  font-size: 12.5px;
+  line-height: 2;
+  margin: 14px 0;
+  overflow-x: auto;
+  color: var(--fg);
+}
+.math .cm { color: var(--fg-faint); font-size: 11px; }
+
+/* ─── Code ────────────────────────────────────────────────────── */
+code {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12.5px;
+  background: var(--mono-bg);
+  padding: 1px 5px;
+  border-radius: 3px;
+  color: var(--accent);
+}
+pre {
+  background: var(--mono-bg);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px 20px;
+  overflow-x: auto;
+  margin: 14px 0;
+}
+pre code { background: none; padding: 0; color: var(--fg); font-size: 12px; }
+
+/* ─── Tables ──────────────────────────────────────────────────── */
+.tbl-wrap { overflow-x: auto; margin: 14px 0; }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th {
+  border-bottom: 2px solid var(--border-strong);
+  border-top: 1px solid var(--border);
+  padding: 7px 14px;
+  text-align: left;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--fg-dim);
+  background: var(--mono-bg);
+}
+td { border-bottom: 1px solid var(--border); padding: 8px 14px; vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+
+/* ─── Lists ───────────────────────────────────────────────────── */
+ul, ol { padding-left: 22px; margin: 0 0 14px; }
+li { margin-bottom: 6px; }
+
+/* ─── OPEN conditions block ───────────────────────────────────── */
+.open-block {
+  background: var(--open-bg);
+  border: 1px solid var(--open-border);
+  border-left: 4px solid var(--open-border);
+  border-radius: 0 4px 4px 0;
+  padding: 18px 22px;
+  margin: 20px 0;
+}
+.open-block h4 { color: var(--open); border-bottom: 1px solid var(--open-border); padding-bottom: 8px; margin-top: 0; }
+.open-item { margin-bottom: 18px; }
+.open-item:last-child { margin-bottom: 0; }
+.open-item-title { font-weight: 600; margin-bottom: 3px; }
+
+/* ─── Tags ────────────────────────────────────────────────────── */
+.tag {
+  display: inline-block;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 2px;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+.tag-open { background: var(--open-bg); color: var(--open); border: 1px solid var(--open-border); }
+.tag-admitted { background: var(--tag-bg); color: var(--tag-fg); border: 1px solid var(--tag-fg); }
+.tag-m0 { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent); }
+
+/* ─── Worked example steps ──────────────────────────────────── */
+.steps { display: flex; flex-direction: column; gap: 2px; margin: 18px 0; }
+.step { display: grid; grid-template-columns: 32px 1fr; gap: 0 12px; }
+.step-n {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--accent);
+  font-weight: 500;
+  padding-top: 18px;
+}
+
+/* ─── Criterion grid ──────────────────────────────────────────── */
+.crit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+@media (max-width: 560px) { .crit-grid { grid-template-columns: 1fr; } }
+.crit-box {
+  background: var(--bg-lifted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 16px 18px;
+}
+.crit-box.conformance { border-top: 3px solid var(--accent); }
+.crit-box.functional  { border-top: 3px solid var(--ok); }
+.crit-box h4 { color: var(--accent); margin-top: 0; }
+.crit-box.functional h4 { color: var(--ok); }
+.crit-box ul { margin: 0; padding-left: 16px; }
+.crit-box li { font-size: 13px; margin-bottom: 5px; }
+
+/* ─── TOC ─────────────────────────────────────────────────────── */
+.toc { font-size: 14px; margin: 0 0 32px; }
+.toc ol { list-style: decimal; padding-left: 20px; }
+.toc li { margin-bottom: 5px; }
+.toc a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+.toc a:hover { border-bottom-color: var(--accent); }
+
+/* ─── Footer ──────────────────────────────────────────────────── */
+.doc-footer {
+  margin-top: 72px;
+  border-top: 1px solid var(--border);
+  padding-top: 20px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--fg-faint);
+  line-height: 1.8;
+}
+</style>
+
+<!-- COVER -->
+<div class="cover">
+  <div class="cover-eyebrow">Metatron Dynamics × Relational Relativity Corporation</div>
+  <h1>Minimal Relational AI Computational Core</h1>
+  <p class="cover-sub">M0 Mathematical Specification — Relational Representation, Transformation, and Attention from Observable Primitive</p>
+  <dl class="cover-grid">
+    <div><dt>Repository</dt><dd>abr-minimal-ai</dd></div>
+    <div><dt>Kernel Authority</dt><dd>V8 · 2026-09-27</dd></div>
+    <div><dt>Generator</dt><dd>Claude Sonnet 4.6</dd></div>
+    <div><dt>Verifier</dt><dd>ChatGPT (independent)</dd></div>
+    <div><dt>Origin</dt><dd>Human authorization</dd></div>
+    <div><dt>Date</dt><dd>2026-10-25</dd></div>
+    <div><dt>Status</dt><dd>M0 · Awaiting Verifier Review</dd></div>
+    <div><dt>Session</dt><dd>session_01CFPKeATovNRJR4oHjYyLM6</dd></div>
+  </dl>
+</div>
+
+<div class="page">
+
+<div class="notice stop">
+  <strong>Stop Condition</strong>
+  This document is the complete M0 output. It is a mathematical specification only. No implementation modules, no AI architecture introduction, no M1 advancement without Origin authorization. Return to independent Verifier before any subsequent phase.
+</div>
+
+<div class="notice freeze">
+  <strong>Kernel V8 — Frozen</strong>
+  All operators, derived invariants, and admission criteria are taken unchanged from Metatron Dynamics Kernel V8 (2026-09-27; discipline 2026-09-29), source file <code>irrs-kernel/src/operators.rs</code>. No operator is modified, reinterpreted, or rederived. Where this specification and the kernel source differ, the source governs; a difference is a finding for Origin.
+</div>
+
+<!-- TOC -->
+<div class="section-rule">Contents</div>
+<div class="toc">
+  <ol>
+    <li><a href="#authorities">Authoritative References</a></li>
+    <li><a href="#task1">Task 1 — Minimal Observational Domain</a></li>
+    <li><a href="#task2">Task 2 — Relational Representation</a></li>
+    <li><a href="#task3">Task 3 — Independent Evaluation Criteria</a></li>
+    <li><a href="#task4">Task 4 — Path to Transformation and Attention</a></li>
+    <li><a href="#task5">Task 5 — M0 Evidence Package</a></li>
+  </ol>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-rule" id="authorities">Authoritative References</div>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>File</th><th>Content</th><th>Revision</th></tr></thead>
+  <tbody>
+    <tr><td><code>irrs-kernel/src/operators.rs</code></td><td>All V8 operators: A, B, R, Δ, Σ, persistence chain, ρ computation</td><td>Metatron Dynamics Kernel V8 (2026-09-27; discipline 2026-09-29). Frozen. Line 26.</td></tr>
+    <tr><td><code>irrs-kernel/src/derived_invariants.rs</code></td><td>Derived invariants: HBAR, E_UNIT, epsilon_e, tau_v, phi_v, j_v, DETECTION_TOLERANCE</td><td>Same authority. <code>DETECTION_TOLERANCE = 1e-12</code>.</td></tr>
+    <tr><td><code>irrs-kernel/src/region.rs</code></td><td>Region establishment: RegionBuilder, EstablishedRegion, interior-locus condition</td><td>Same authority.</td></tr>
+    <tr><td><code>irrs-kernel/src/lib.rs</code></td><td>Foundational primitive: "A directed relation declared from observable information."</td><td>Same authority.</td></tr>
+    <tr><td><code>docs/v9_provenance/phase1_gap_matrix.md</code></td><td>IRRS V9 Phase 1 Architecture Assessment — gap matrix, proposed additive interface</td><td>Base commit <code>1400d3bb</code>, assessed 2026-10-24.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The foundational primitive is stated in <code>irrs-kernel/src/lib.rs</code> as: <em>"A directed relation declared from observable information."</em> It is the starting point. It is not derived. It arises from three irreducible characteristics: <strong>complexity</strong> (observable systems are not reducible to a single variable), <strong>change as the only observable constant</strong> (what is consistently observable is not a stable object, but change), and <strong>bounded domain of analysis</strong> (every declaration is bounded; D contains only what has been declared through M). Everything in this specification derives from this primitive.</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-rule" id="task1">Task 1 — Minimal Observational Domain</div>
+
+<h2>1.1 Scenario</h2>
+
+<p>An observer O and a single object P are co-present in an observable region. The observer makes two successive position observations separated by a declared time interval. The observable quantity at each event is the <em>relative displacement</em> between O and P — not P's absolute position, not a coordinate in an external frame. Direction and magnitude are declared from the observation. No reference frame is introduced as an independent primitive. Any coordinate representation is itself a declared mapping through M.</p>
+
+<p>This is the smallest scenario satisfying all three foundational characteristics from <code>irrs-kernel/src/lib.rs</code>: complexity (the observer-object system is not reducible to a single variable), change (the observable quantity changes between observations), and bounded domain (only what is declared through M is in D).</p>
+
+<h2>1.2 Observable Relationships and Provenance</h2>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Observable</th><th>Description</th><th>Provenance</th><th>EdgeProvenance Class</th></tr></thead>
+  <tbody>
+    <tr>
+      <td><code>r₁</code></td>
+      <td>Displacement from O to P at first observation t₁. Scalar magnitude of the directed relation from observer locus to object locus at t₁.</td>
+      <td>Declared from measurement. ParameterProvenance: <code>Illustrative</code> at M0 (no instrument calibration submitted).</td>
+      <td><code>Continuation</code></td>
+    </tr>
+    <tr>
+      <td><code>r₂</code></td>
+      <td>Displacement from O to P at second observation t₂. Scalar magnitude of the directed relation from observer locus to object locus at t₂.</td>
+      <td>Declared from measurement. ParameterProvenance: <code>Illustrative</code> at M0.</td>
+      <td><code>Continuation</code></td>
+    </tr>
+    <tr>
+      <td><code>Δr = r₂ − r₁</code></td>
+      <td>Change in displacement between observations. Derived from declared r₁ and r₂; not measured independently.</td>
+      <td>Derived. Provenance traces to r₁ and r₂. Appears as A(ι)[e₂] under the A operator.</td>
+      <td><code>Continuation</code></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h2>1.3 Domain D and Mapping M</h2>
+
+<p>The domain D contains exactly three loci and two edges — the minimum topology that satisfies the interior-locus condition required for full-operator admissibility.</p>
+
+<div class="math">
+D = ( V, E, ι, ρ_base, χ₀ )
+
+V = { v₀, v₁, v₂ }
+    v₀  Observer locus. Reference from which displacements are measured.
+    v₁  Object locus at first observation (t₁).
+    v₂  Object locus at second observation (t₂).
+
+E = { e₁, e₂ }
+    e₁ = (v₀ → v₁)   EdgeProvenance: Continuation
+                       Direction basis: observer is declared measurement source;
+                       object position is declared target.
+    e₂ = (v₁ → v₂)   EdgeProvenance: Continuation
+                       Direction basis: temporal ordering t₁ &lt; t₂ declared from
+                       measurement protocol; earlier state is source, later is target.
+
+Interior-locus condition: v₁ = tgt(e₁) ∩ src(e₂)   ✓ admitted
+
+ι : V → ℝ    (node field; declared observable scalar at each locus)
+    ι[v₀] = x₀   observer locus value (declared reference scalar)
+    ι[v₁] = x₁   first observed displacement  (= r₁)
+    ι[v₂] = x₂   second observed displacement (= r₂)
+
+M : Observable → D
+    "observer reference"              ↦  v₀, ι[v₀] = x₀
+    "displacement at t₁ = r₁"        ↦  v₁, ι[v₁] = r₁
+    "displacement at t₂ = r₂"        ↦  v₂, ι[v₂] = r₂
+    "temporal ordering t₁ &lt; t₂"      ↦  direction basis of e₂
+
+ρ_base : ℝ⁺   coupling ceiling (M-declared; no kernel default)
+χ₀     : ℝ⁺   saturation scale (M-declared; no kernel default)
+cc     = 0     cross-topology coupling (single topology; declared explicitly)
+</div>
+
+<h2>1.4 Region Establishment Prerequisite</h2>
+
+<p>Per <code>irrs-kernel/src/region.rs</code>, all five conditions must be established before topology instantiation. No default substitutes for any missing field.</p>
+
+<ol>
+  <li><strong>Region identified from observable evidence.</strong> Name: <em>"Observer–Object Displacement Domain"</em>.</li>
+  <li><strong>Observable extents declared.</strong> [x_lower, x_upper] with declared unit. Both bounds required; no default.</li>
+  <li><strong>Cross-family orientation declared.</strong> Preserved: temporal ordering (t₁ &lt; t₂). Discarded: absolute spatial coordinates (not declared as primitives).</li>
+  <li><strong>Regional admission rule established.</strong> All locus values within declared extents; edge directions grounded in declared M.</li>
+  <li><strong>Interior-locus condition satisfied.</strong> x_lower &lt; x₁ &lt; x_upper (strict interior). v₁ is both target of e₁ and source of e₂.</li>
+</ol>
+
+<h2>1.5 Measurement Parameters</h2>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Parameter</th><th>Role</th><th>M0 Status</th></tr></thead>
+  <tbody>
+    <tr><td><code>δr</code></td><td>Declared measurement resolution — smallest distinguishable change in displacement.</td><td>Must be declared by M. Not a kernel parameter. Declared illustrative at M0.</td></tr>
+    <tr><td><code>ρ_base</code></td><td>Coupling ceiling for operator R. Domain-specific; no kernel default.</td><td>Must be declared by M. Declared illustrative at M0.</td></tr>
+    <tr><td><code>χ₀</code></td><td>Saturation scale for ρ computation. Domain-specific; no kernel default.</td><td>Must be declared by M. Declared illustrative at M0. RhoSaturatingForm OPEN.</td></tr>
+    <tr><td><code>DETECTION_TOLERANCE</code></td><td>Numerical precision parameter for operator comparisons. From <code>derived_invariants.rs</code>.</td><td><code>1e-12</code> (frozen). Not a physical detection limit.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>1.6 Conditions Under Which the Domain Is Incomplete</h2>
+
+<p>Admission must be rejected, or the domain is declared incomplete, if any of the following hold:</p>
+<ul>
+  <li><code>ρ_base</code> or <code>χ₀</code> not declared by M (no kernel default will be substituted).</li>
+  <li>Observable extents not declared.</li>
+  <li>Interior-locus condition not satisfied (x₁ not strictly interior to [x_lower, x_upper]).</li>
+  <li>Any edge's EdgeProvenance not declared.</li>
+  <li>Any edge's direction basis not declared through M.</li>
+  <li>Any value claimed <code>ObservationallyVerified</code> without a submitted VerificationRecord.</li>
+  <li>Degenerate case x₁ = x₂: A(ι)[e₂] = 0; the change edge carries no information. Admissible, but the domain reports zero observed change — this is a finding, not a failure.</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-rule" id="task2">Task 2 — Relational Representation</div>
+
+<h2>2.1 The Representation Question</h2>
+
+<p>Conventional AI represents inputs as vectors in a learned embedding space, as tokens assigned to a discrete vocabulary, or as activations in a neural network layer. Each introduces structure not in the observable: embedding dimension, vocabulary, learned weight matrices.</p>
+
+<p>The question is: if the only observable primitive is a directed relation and operators are limited to the frozen Kernel V8 operators, what is the representation of the admitted observations — and is it sufficient?</p>
+
+<h2>2.2 The A Operator: Extraction</h2>
+
+<p>The representation of the admitted domain D is the output of the A operator applied to the declared node field ι:</p>
+
+<div class="math">
+A(ι)[e] = ι[src(e)] − ι[tgt(e)]      <span class="cm">// Kernel V8, operators.rs</span>
+
+For our minimal topology:
+
+A(ι)[e₁] = ι[v₀] − ι[v₁] = x₀ − x₁
+           <span class="cm">// Directed difference from observer to object at t₁.</span>
+           <span class="cm">// = −r₁ when x₀ = 0 (declared observer reference).</span>
+
+A(ι)[e₂] = ι[v₁] − ι[v₂] = x₁ − x₂ = r₁ − r₂ = −Δr
+           <span class="cm">// Directed difference between first and second observations.</span>
+           <span class="cm">// Negative of the declared change Δr = r₂ − r₁.</span>
+</div>
+
+<p>This two-component field <code>[x₀−x₁, x₁−x₂]</code> is the relational representation. It is in edge space, not node space, not an external coordinate space. It captures: (1) the observer-to-object relationship at t₁; (2) the change in the object's relationship between observations.</p>
+
+<p>A is necessary: it is the only operator that maps from node space (observable locus values) to edge space (declared relational differences). Without A, there is no relational representation — only a list of scalars at nodes, which are not relations. Relations are declared differences between loci. A is their extraction operator.</p>
+
+<h2>2.3 The B Operator: Propagation</h2>
+
+<p>B propagates the edge-level field forward through the declared topology, accumulating successor contributions:</p>
+
+<div class="math">
+B(g)[e] = g[e] + Σ_{f ∈ succ(e)} g[f]      <span class="cm">// Kernel V8, operators.rs</span>
+succ(e) = { f ∈ E : src(f) = tgt(e) }       <span class="cm">// edges continuing from tgt(e)</span>
+
+For our topology:
+    succ(e₁) = { e₂ }   <span class="cm">// e₂ begins at v₁ = tgt(e₁)</span>
+    succ(e₂) = { }       <span class="cm">// v₂ has no outgoing edges; B is identity at terminal edge</span>
+
+Let g = A(ι):
+
+B(A(ι))[e₁] = A(ι)[e₁] + A(ι)[e₂]
+             = (x₀ − x₁) + (x₁ − x₂)
+             = x₀ − x₂   ← total directed range: observer to object at t₂
+
+B(A(ι))[e₂] = A(ι)[e₂] = x₁ − x₂ = −Δr
+
+Testable invariant: B(A(ι))[e₁] = x₀ − x₂  is independent of x₁.
+  Proof: (x₀ − x₁) + (x₁ − x₂) = x₀ − x₂ for all x₁. ∎
+</div>
+
+<p>B is necessary: the relational representation of a multi-step observation is not merely the edge-level differences — it is how those differences propagate through the declared topology. B(A(ι))[e₁] = x₀ − x₂ is the accumulated context: the full directed span from observer to the final object position, derived from the declared chain without independent measurement.</p>
+
+<h2>2.4 The R Operator: Coupling</h2>
+
+<p>R adds ρ-weighted coupling between edges through the declared adjacency structure:</p>
+
+<div class="math">
+R(g̃)[e] = g̃[e] + ρ[e]·( Σ_{adj+(e)} g̃ − Σ_{adj−(e)} g̃ ) + cc·(cross-topology)
+
+adj+(e) = { f : src(f) = tgt(e) }   <span class="cm">// edges succeeding e</span>
+adj−(e) = { f : tgt(f) = src(e) }   <span class="cm">// edges preceding e</span>
+
+For our topology (cc = 0):
+    adj+(e₁) = { e₂ }    adj−(e₁) = {}       <span class="cm">// v₀ has no incoming edges</span>
+    adj+(e₂) = {}         adj−(e₂) = { e₁ }  <span class="cm">// e₁ ends at src(e₂)</span>
+
+Let g̃ = B(A(ι)):
+
+R(g̃)[e₁] = (x₀ − x₂) + ρ[e₁]·(x₁ − x₂)
+           <span class="cm">// Total span is coupled to the local change, weighted by ρ[e₁].</span>
+
+R(g̃)[e₂] = (x₁ − x₂) + ρ[e₂]·(−(x₀ − x₂))
+           = −Δr − ρ[e₂]·(x₀ − x₂)
+           <span class="cm">// Local change is back-coupled to the total span, weighted by ρ[e₂].</span>
+
+ρ[e]: determined from ρ_base, χ₀, and the topology's field values.
+Form of ρ[e]: OPEN (RhoSaturatingForm §11.2, §18).
+χ definition for acyclic path topology: OPEN (see §5.7).
+</div>
+
+<p>R is necessary for coupling: it introduces the ρ-weighted influence of adjacent edges on each other. In the minimal two-observation domain, this captures the relational interaction between the local change (e₂) and the total span (e₁) — the magnitude of Δr influences how the total span is represented, and vice versa, through the declared ρ weighting.</p>
+
+<h2>2.5 What Is Not Required</h2>
+
+<ul>
+  <li><strong>Embeddings.</strong> The representation A(ι) is already in edge space. No embedding is required.</li>
+  <li><strong>Tokens or vocabulary.</strong> Loci and values are declared through M, not assigned from a discrete vocabulary.</li>
+  <li><strong>Learned weights.</strong> ρ_base and χ₀ are domain-declared. The operator chain A→B→R is frozen. No weight matrix or gradient update is involved.</li>
+  <li><strong>Softmax or normalization.</strong> The R output is not normalized. Its values carry the structure of the declared domain.</li>
+  <li><strong>Persistence operators.</strong> A_persistence, B_persistence, R_persistence are not needed at M0. Persistence requires a prior EdgeField from a completed execution. The two-observation domain does not span execution sessions.</li>
+  <li><strong>A new mathematical operator.</strong> None is introduced. The existing A, B, R operators are sufficient for relational representation of the declared domain.</li>
+</ul>
+
+<h2>2.6 Sufficiency Claim</h2>
+
+<p>The relational representation A(ι) is sufficient to capture what was declared: the directed difference from observer to object at t₁, and the directed difference between observations. B extends this to the full span. R introduces the ρ-weighted coupling between these two levels.</p>
+
+<p>Whether this representation is sufficient for AI computation — for pattern recognition, generalization, task-directed output — is not established at M0. That question requires Task 3 (evaluation criteria) and belongs to M1 and beyond, subject to Origin authorization.</p>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-rule" id="task3">Task 3 — Independent Evaluation Criteria</div>
+
+<p>The following criteria separate Kernel V8 conformance from functional success. Both must be evaluated independently. Neither implies the other.</p>
+
+<div class="crit-grid">
+  <div class="crit-box conformance">
+    <h4>Kernel V8 Conformance</h4>
+    <ul>
+      <li>Every edge has a declared EdgeProvenance</li>
+      <li>Interior-locus condition satisfied: v₁ ∈ tgt(E) ∩ src(E)</li>
+      <li>ρ_base and χ₀ declared; no kernel defaults used</li>
+      <li>Observable extents declared and satisfied</li>
+      <li>RhoMaxSelectionRule surfaced as OPEN</li>
+      <li>RhoSaturatingForm surfaced as OPEN</li>
+      <li>No operator applied without prior admission</li>
+      <li>Observable provenance (if declared): EvaluationStatus ≠ Failed before any operator</li>
+      <li>cc declared explicitly (not silently defaulted)</li>
+    </ul>
+  </div>
+  <div class="crit-box functional">
+    <h4>Functional Success</h4>
+    <ul>
+      <li>A(ι) traces to declared ι and declared topology</li>
+      <li>Result changes if and only if declared inputs change</li>
+      <li>Identical declarations → identical outputs (reproducibility)</li>
+      <li>Undeclared edges: rejected at admission</li>
+      <li>Undeclared node values: rejected; not silently zeroed</li>
+      <li>Results remain within declared domain D</li>
+      <li>Degenerate case A(ι) = 0: reported, not silently accepted</li>
+      <li>ParameterProvenance accurately reflects what has been established</li>
+    </ul>
+  </div>
+</div>
+
+<h2>3.1 Criterion 1 — Observable Provenance Preservation</h2>
+
+<div class="math">
+Given declared ι = (x₀, x₁, x₂) and topology (V, E):
+
+  A(ι)[e₁] must equal x₀ − x₁.   No other value is correct.
+  A(ι)[e₂] must equal x₁ − x₂.   No other value is correct.
+
+Any deviation from these equalities, or any output not traceable to a
+declared (x₀, x₁, x₂), is a provenance failure.
+</div>
+
+<h2>3.2 Criterion 2 — Sensitivity to Observation Changes</h2>
+
+<p>Let ι′ be a new declaration with x₁ replaced by x₁ + δ, x₀ and x₂ unchanged:</p>
+
+<div class="math">
+A(ι′)[e₁] = x₀ − (x₁ + δ) = A(ι)[e₁] − δ         <span class="cm">// must change by −δ</span>
+A(ι′)[e₂] = (x₁ + δ) − x₂ = A(ι)[e₂] + δ          <span class="cm">// must change by +δ</span>
+
+B(A(ι′))[e₁] = x₀ − x₂ = B(A(ι))[e₁]              <span class="cm">// invariant to x₁  ✓</span>
+B(A(ι′))[e₂] = (x₁ + δ) − x₂ = B(A(ι))[e₂] + δ    <span class="cm">// changes by +δ</span>
+
+The invariance of B(A(ι))[e₁] to x₁ is a testable mathematical consequence
+of the V8 operator definitions applied to this declared topology. Not assumed;
+derived from the frozen operators.
+</div>
+
+<h2>3.3 Criterion 3 — Reproducibility</h2>
+
+<div class="math">
+The V8 operators A, B, R are deterministic functions of their inputs.
+Given the same declared ι, ρ_base, χ₀, and topology, the full A→B→R
+chain must produce identical output on every execution.
+
+There is no stochastic element in the frozen operators.
+Numerical precision: bounded by DETECTION_TOLERANCE = 1e-12.
+</div>
+
+<h2>3.4 Criterion 4 — Rejection of Undeclared Relationships</h2>
+
+<div class="math">
+Test A: Add edge e₃ = (v₀ → v₂) without declaring its EdgeProvenance.
+        Expected: Admission rejected.
+
+Test B: Submit node field with ι[v₃] where v₃ ∉ V.
+        Expected: Admission rejected.
+
+Test C: Declare ρ_base without χ₀ (or vice versa).
+        Expected: Admission rejected. No default substitution.
+
+Test D: Submit e₂ with no declared direction basis.
+        Expected: Admission OPEN or rejected.
+</div>
+
+<h2>3.5 Criterion 5 — Remaining Within Declared Mathematical Scope</h2>
+
+<div class="math">
+Output of A→B→R is a field over E = { e₁, e₂ }.
+Values are real numbers derived from declared (x₀, x₁, x₂, ρ_base, χ₀).
+
+No claim about values outside this domain is permitted.
+No interpolation between declared loci is authorized.
+No extrapolation to unlisted observations beyond { t₁, t₂ } is authorized.
+No inference about a hypothetical third observation is authorized.
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-rule" id="task4">Task 4 — Path to Transformation and Attention</div>
+
+<h2>4.1 Transformation</h2>
+
+<p>In the relational framework, transformation is the computation of a new relational state from a declared prior state through the frozen operator chain. It is what the operators already do: they transform a declared node field ι through A→B→R to produce a coupled relational output in edge space. The R operator is the transformation operator.</p>
+
+<p>To test transformation as an AI computation, the following sequence would be required at a future milestone — not authorized at M0:</p>
+
+<ol>
+  <li><strong>Declare an initial relational state.</strong> Domain D₁ with node field ι₁ and topology (V₁, E₁). This is the "input."</li>
+  <li><strong>Apply A→B→R to D₁.</strong> Produce R(B(A(ι₁))) — the transformed relational state in edge space over E₁.</li>
+  <li><strong>Declare a second domain D₂ with node field ι₂.</strong> This is the "expected output" — a declared observable the transformation is meant to reproduce or approximate.</li>
+  <li><strong>Compare.</strong> Evaluate |R(B(A(ι₁)))[e] − A(ι₂)[e]| for each e ∈ E. This must use declared observable values, not inferred or interpolated. This is governing authority Rule 7: calculated results must return to comparison with declared observables.</li>
+</ol>
+
+<p>The mathematical path is available now. What is missing at M0 is: a second declared domain D₂, a declared correspondence between the edge spaces of D₁ and D₂, and Origin authorization for a transformation experiment. No new operator is needed.</p>
+
+<h2>4.2 Attention</h2>
+
+<p>Conventional attention (query/key/value + softmax) selects which inputs contribute most to an output through learned weight matrices and softmax normalization. It introduces structure not in the observable.</p>
+
+<p>In the relational framework, the ρ[e] coupling coefficient in the R operator is the kernel's structural answer to this question. ρ[e] governs the weight with which edge e's value is combined with its adjacent edges in the R output:</p>
+
+<div class="math">
+ρ[e] = f(ρ_base, χ[e], χ₀)
+
+Form of f: OPEN (RhoSaturatingForm §11.2, §18).
+
+Illustrative assumed form (not authorized):
+    ρ[e] = ρ_base / (1 + |χ[e]| / χ₀)
+
+Low |χ[e]| (near-zero circulation) → ρ[e] ≈ ρ_base   (high coupling)
+High |χ[e]| (strong circulation)   → ρ[e] ≈ 0         (suppressed coupling)
+</div>
+
+<p>This is a relational "attention weight" — not learned, not normalized by softmax, but determined by the declared domain parameters (ρ_base, χ₀) and the topology's intrinsic circulation structure. ρ[e] values differentiate which edges contribute strongly to the R output and which are suppressed.</p>
+
+<p>To test relational attention, the following would be required at a future milestone — not authorized at M0:</p>
+<ol>
+  <li>Declare a task output T (a target observable at a specific edge or set of edges).</li>
+  <li>Compute ρ[e] for all edges — requires RhoSaturatingForm to be closed by Origin.</li>
+  <li>Evaluate the contribution of each edge to R at the task-relevant edges. Edges with high |ρ[e]| in that computation are the "attended" edges.</li>
+  <li>Confirm the result traces to declared observables.</li>
+</ol>
+
+<p>Two OPEN conditions currently block this: RhoMaxSelectionRule and RhoSaturatingForm. The path is clear; the authorization is not yet in place.</p>
+
+<h2>4.3 What Is Not Prescribed</h2>
+
+<p>This specification does not prescribe how transformation or attention will be mathematically formalized at M1. The M0 claims are:</p>
+<ul>
+  <li>The existing operators contain the mathematical structure from which transformation and attention can be derived.</li>
+  <li>No new operator needs to be introduced for either function.</li>
+  <li>Both functions require declared domains — not learned parameters — to operate.</li>
+  <li>Both require closing RhoMaxSelectionRule and RhoSaturatingForm before precise computation is possible.</li>
+</ul>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<div class="section-rule" id="task5">Task 5 — M0 Evidence Package</div>
+
+<h2>5.1 Proposed Mathematical Declaration</h2>
+
+<div class="math">
+Domain identifier:  "observer-object-displacement-m0"
+Primitive:          Directed relation declared from observable information.
+                    (irrs-kernel/src/lib.rs, Kernel V8, 2026-09-27)
+
+V = { v₀ (observer), v₁ (object at t₁), v₂ (object at t₂) }
+E = { e₁ = (v₀ → v₁), e₂ = (v₁ → v₂) }
+    e₁  EdgeProvenance: Continuation; direction from observer to object at t₁.
+    e₂  EdgeProvenance: Continuation; direction by temporal ordering t₁ &lt; t₂.
+
+ι : V → ℝ
+    ι[v₀] = x₀   observer reference (declared)
+    ι[v₁] = x₁   first observed displacement (declared from measurement)
+    ι[v₂] = x₂   second observed displacement (declared from measurement)
+
+ρ_base ∈ ℝ⁺   (declared by M; no kernel default)
+χ₀     ∈ ℝ⁺   (declared by M; no kernel default)
+cc     = 0     (declared explicitly)
+
+Region: "Observer–Object Displacement Domain"
+    Extents: [x_lower, x_upper], declared unit
+    Interior-locus: x_lower &lt; x₁ &lt; x_upper
+    Cross-family orientation — preserved: temporal ordering of observations
+                                discarded: absolute spatial coordinates
+    Admission rule: all locus values within extents; edge directions in declared M
+</div>
+
+<h2>5.2 Observable Input Specification</h2>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Input</th><th>Symbol</th><th>Illustrative Value</th><th>Provenance</th></tr></thead>
+  <tbody>
+    <tr><td>Observer locus</td><td>x₀</td><td>0.0 m</td><td>Declared reference. Not measured; declared as the measurement origin.</td></tr>
+    <tr><td>First observation</td><td>x₁ = r₁</td><td>3.0 m</td><td>Illustrative. Declared from hypothetical measurement. ParameterProvenance: Illustrative.</td></tr>
+    <tr><td>Second observation</td><td>x₂ = r₂</td><td>5.0 m</td><td>Illustrative. Declared from hypothetical measurement. ParameterProvenance: Illustrative.</td></tr>
+    <tr><td>Coupling ceiling</td><td>ρ_base</td><td>0.5</td><td>Illustrative. Domain-specific. No physical basis claimed at M0.</td></tr>
+    <tr><td>Saturation scale</td><td>χ₀</td><td>10.0 m</td><td>Illustrative. Domain-specific. RhoSaturatingForm OPEN.</td></tr>
+    <tr><td>Cross-topology</td><td>cc</td><td>0.0</td><td>Declared explicitly. Single topology.</td></tr>
+    <tr><td>Observable extents</td><td>[x_lower, x_upper]</td><td>[0.0, 20.0] m</td><td>Declared illustrative; chosen so that x₁ = 3.0 satisfies interior-locus condition.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Declaration:</strong> These values are <em>illustrative</em>. They are not claimed as measured physical evidence. ParameterProvenance is <code>Illustrative</code> throughout. They are declared for the purpose of demonstrating the mathematical structure.</p>
+
+<h2>5.3 Mapping M and Operator Prerequisites</h2>
+
+<div class="math">
+M: Observable → D
+
+    "observer at origin"               ↦  v₀, ι[v₀] = 0.0
+    "object displacement at t₁ = 3.0" ↦  v₁, ι[v₁] = 3.0
+    "object displacement at t₂ = 5.0" ↦  v₂, ι[v₂] = 5.0
+    "observer is source of e₁"        ↦  src(e₁) = v₀
+    "object at t₁ is target of e₁"    ↦  tgt(e₁) = v₁
+    "object at t₁ is source of e₂"    ↦  src(e₂) = v₁
+    "object at t₂ is target of e₂"    ↦  tgt(e₂) = v₂
+    "temporal ordering t₁ &lt; t₂"       ↦  direction basis of e₂
+
+Operator prerequisites (Kernel V8):
+
+  Before A:  Node field ι declared over all v ∈ V.
+  Before B:  Edge field g over all e ∈ E. succ(e) computed from topology.
+  Before R:  Edge field g̃ over all e ∈ E.
+             adj+(e), adj−(e) computed from topology.
+             ρ[e] computable: ρ_base and χ₀ declared; RhoSaturatingForm OPEN.
+             cc declared.
+
+Regional prerequisites (region.rs):
+  EstablishedRegion with verified interior locus v₁.
+  All four regional fields declared: name, extents, orientation, admission_rule.
+</div>
+
+<h2>5.4 Worked Minimal Mathematical Example</h2>
+
+<p>All values are illustrative. OPEN conditions apply to the R operator output.</p>
+
+<div class="steps">
+  <div class="step">
+    <div class="step-n">1</div>
+    <div>
+      <h3>Operator A</h3>
+      <div class="math">
+Input: x₀ = 0.0,  x₁ = 3.0,  x₂ = 5.0
+
+A(ι)[e₁] = 0.0 − 3.0 = −3.0
+            <span class="cm">// directed difference: observer to object at t₁</span>
+
+A(ι)[e₂] = 3.0 − 5.0 = −2.0
+            <span class="cm">// directed difference between observations (= −Δr, Δr = 2.0)</span>
+
+A(ι) = [−3.0, −2.0]   over [e₁, e₂]
+</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-n">2</div>
+    <div>
+      <h3>Operator B</h3>
+      <div class="math">
+B(A(ι))[e₁] = A(ι)[e₁] + A(ι)[e₂]   <span class="cm">// succ(e₁) = {e₂}</span>
+             = −3.0 + (−2.0) = −5.0
+
+B(A(ι))[e₂] = A(ι)[e₂]               <span class="cm">// succ(e₂) = {}; terminal edge</span>
+             = −2.0
+
+Verification of B invariant:
+  B(A(ι))[e₁] = x₀ − x₂ = 0.0 − 5.0 = −5.0   ✓ (independent of x₁ = 3.0)
+
+B(A(ι)) = [−5.0, −2.0]   over [e₁, e₂]
+</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-n">3</div>
+    <div>
+      <h3>ρ computation <span class="tag tag-open">Open: RhoSaturatingForm</span></h3>
+      <div class="math">
+OPEN CONDITION: RhoSaturatingForm (§11.2, §18). The exact functional form of ρ
+has not been authorized by Origin. The following uses an assumed saturating form
+for illustrative purposes only. It must not be treated as an authorized result.
+
+Also OPEN: the definition of χ[e] for a path topology (see §5.7).
+The following illustrative assignment is a placeholder:
+    χ[e₁] ← |A(ι)[e₁]| = 3.0   (illustrative; not authorized)
+    χ[e₂] ← |A(ι)[e₂]| = 2.0   (illustrative; not authorized)
+
+Assumed saturating form (illustrative):
+    ρ[e] = ρ_base / (1 + |χ[e]| / χ₀)
+
+ρ[e₁] = 0.5 / (1 + 3.0/10.0) = 0.5 / 1.3 ≈ 0.3846
+ρ[e₂] = 0.5 / (1 + 2.0/10.0) = 0.5 / 1.2 ≈ 0.4167
+</div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-n">4</div>
+    <div>
+      <h3>Operator R <span class="tag tag-open">Open: RhoSaturatingForm, RhoMaxSelectionRule</span></h3>
+      <div class="math">
+Let g̃ = B(A(ι)) = [−5.0, −2.0] over [e₁, e₂].
+
+R(g̃)[e₁] = g̃[e₁] + ρ[e₁]·g̃[e₂]         <span class="cm">// adj+(e₁)={e₂}, adj−(e₁)={}</span>
+           = −5.0 + 0.3846·(−2.0)
+           = −5.0 − 0.769
+           ≈ −5.769
+
+R(g̃)[e₂] = g̃[e₂] + ρ[e₂]·(−g̃[e₁])      <span class="cm">// adj+(e₂)={}, adj−(e₂)={e₁}</span>
+           = −2.0 + 0.4167·(5.0)
+           = −2.0 + 2.083
+           ≈ +0.083
+
+Full A→B→R output (illustrative; OPEN conditions apply to R):
+  A:  [−3.0,  −2.0]
+  B:  [−5.0,  −2.0]
+  R:  [−5.769, +0.083]
+
+The sign reversal at e₂ (from −2.0 at B to +0.083 at R) reflects the dominance
+of the back-coupling term: ρ[e₂]·(x₀ − x₂) = 0.417·5.0 = 2.083 > 2.0 = Δr.
+This output traces to its declared inputs. Its physical interpretation within
+this domain is not claimed here; it is a mathematical consequence of the
+declared topology, declared node field, and assumed (illustrative, OPEN) ρ form.
+</div>
+    </div>
+  </div>
+</div>
+
+<h2>5.5 Independent Acceptance Criteria</h2>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>ID</th><th>Test</th><th>Pass Condition</th></tr></thead>
+  <tbody>
+    <tr><td>A.1</td><td>Provenance trace</td><td>A(ι)[e₁] = x₀ − x₁ and A(ι)[e₂] = x₁ − x₂ hold exactly for all declared (x₀, x₁, x₂).</td></tr>
+    <tr><td>A.2</td><td>B invariant</td><td>B(A(ι))[e₁] = x₀ − x₂ for all x₁. Verify with three independent triples: (0, 3, 5), (1, 4, 7), (2, 2, 8).</td></tr>
+    <tr><td>A.3</td><td>Reproducibility</td><td>Identical declared inputs produce identical A→B→R outputs on every execution. Verify by running the chain twice with the same declaration.</td></tr>
+    <tr><td>A.4</td><td>Change sensitivity</td><td>Changing x₁ by δ changes A(ι)[e₁] by −δ and A(ι)[e₂] by +δ. Verify for δ = 0.5 and δ = −1.0.</td></tr>
+    <tr><td>A.5</td><td>Undeclared edge rejection</td><td>Adding e₃ = (v₀ → v₂) without EdgeProvenance causes admission rejection.</td></tr>
+    <tr><td>A.6</td><td>Missing parameter rejection</td><td>Omitting ρ_base or χ₀ causes admission rejection. No default is substituted.</td></tr>
+    <tr><td>A.7</td><td>Interior-locus condition</td><td>Setting x₁ = x_lower causes <code>RegionError::LocusNotInterior</code>.</td></tr>
+    <tr><td>A.8</td><td>OPEN conditions surfaced</td><td>Session::admit() surfaces <code>RhoMaxSelectionRule</code> and <code>RhoSaturatingForm</code> as KernelOpenConditions.</td></tr>
+    <tr><td>A.9</td><td>Scope boundary</td><td>No output value claims information about x beyond (x₀, x₁, x₂). No interpolation or extrapolation present in the operator chain.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>5.6 Explicit OPEN Conditions</h2>
+
+<div class="open-block">
+  <h4>OPEN Conditions — Not Resolved at M0</h4>
+
+  <div class="open-item">
+    <div class="open-item-title">RhoMaxSelectionRule <span class="tag tag-open">Open</span></div>
+    Source: <code>irrs-kernel/src/operators.rs</code> §11.2, §18. The max-selection rule for χ in the ρ computation requires Origin declaration. The worked example uses an illustrative χ assignment (field magnitude at each edge) that has not been authorized. No ρ result from the worked example should be treated as a confirmed output until this condition is closed.
+  </div>
+
+  <div class="open-item">
+    <div class="open-item-title">RhoSaturatingForm <span class="tag tag-open">Open</span></div>
+    Source: <code>irrs-kernel/src/operators.rs</code> §11.2, §18. The saturating functional form of ρ(ρ_base, χ, χ₀) requires Origin declaration. The form used in the worked example (<code>ρ_base / (1 + |χ|/χ₀)</code>) is assumed illustrative only. It is not authorized.
+  </div>
+
+  <div class="open-item">
+    <div class="open-item-title">χ[e] definition for path topology <span class="tag tag-open">Open</span></div>
+    The antisymmetric circulation χ[e] in V8 is defined for general topologies including cycles. For the minimal path topology (no cycles), the correct interpretation of χ[e] is not established. The illustrative assignment χ[e] = |A(ι)[e]| is used as a structural placeholder only. Origin must declare the correct χ definition for acyclic path topologies before the R operator output can be treated as confirmed.
+  </div>
+
+  <div class="open-item">
+    <div class="open-item-title">Observable basis provenance <span class="tag tag-open">Open</span></div>
+    All declared values in the worked example use <code>ParameterProvenance::Illustrative</code>. No EvidenceRecord or VerificationRecord is submitted. The domain operates with OPEN provenance on all parameters. Sessions with Illustrative provenance carry this as a surface OPEN condition.
+  </div>
+</div>
+
+<h2>5.7 Proposed Rust Implementation Plan</h2>
+
+<p><strong>No implementation is authorized at M0. The following is a proposed plan for Origin review only.</strong></p>
+
+<h4>Repository Structure (Proposed)</h4>
+
+<pre><code>abr-minimal-ai/
+  Cargo.toml               # workspace
+  abr-minimal-core/        # library crate — relational AI computational core
+    src/
+      lib.rs               # crate declaration, re-exports
+      domain.rs            # MinimalAIDomain — wraps Session from irrs-session
+      declaration.rs       # ObservationDeclaration — the M0 domain declaration type
+      evaluation.rs        # M0EvaluationResult — A→B→R output with provenance
+  abr-minimal-tests/       # integration test binary
+    src/
+      main.rs              # acceptance criteria A.1–A.9
+  examples/
+    observer_object.rs     # worked example, illustrative values only</code></pre>
+
+<h4>Dependencies (Proposed)</h4>
+
+<pre><code>[dependencies]
+irrs-kernel  = { path = "../abr-irrs/irrs-kernel" }    # frozen Kernel V8
+irrs-session = { path = "../abr-irrs/irrs-session" }   # Session: admit/execute</code></pre>
+
+<h4>Core Types (Proposed — Not Implemented)</h4>
+
+<pre><code>/// ObservationDeclaration — the M0 domain declaration.
+/// All fields required; no field has a default.
+pub struct ObservationDeclaration {
+    pub observer_locus:       f64,
+    pub object_at_t1:         f64,
+    pub object_at_t2:         f64,
+    pub rho_base:             f64,
+    pub chi_0:                f64,
+    pub observable_extents:   (f64, f64),
+    pub parameter_provenance: ParameterProvenance, // Illustrative at M0
+}
+
+/// M0EvaluationResult — A→B→R output with full provenance trace.
+pub struct M0EvaluationResult {
+    pub a_output:             [f64; 2],  // A(ι)[e₁], A(ι)[e₂]
+    pub b_output:             [f64; 2],  // B(A(ι))[e₁], B(A(ι))[e₂]
+    pub r_output:             [f64; 2],  // R(B(A(ι)))[e₁], R(B(A(ι)))[e₂] — OPEN: ρ form
+    pub rho:                  [f64; 2],  // ρ[e₁], ρ[e₂] — OPEN: RhoSaturatingForm
+    pub kernel_open:          Vec&lt;KernelOpenCondition&gt;, // surfaced OPEN conditions
+    pub parameter_provenance: ParameterProvenance,
+}</code></pre>
+
+<h4>Test Sketch (Proposed — Not Implemented)</h4>
+
+<pre><code>// A.1 — provenance trace
+assert!((result.a_output[0] - (x0 - x1)).abs() &lt; DETECTION_TOLERANCE);
+assert!((result.a_output[1] - (x1 - x2)).abs() &lt; DETECTION_TOLERANCE);
+
+// A.2 — B invariant over three triples
+for (x0, x1, x2) in [(0.0, 3.0, 5.0), (1.0, 4.0, 7.0), (2.0, 2.0, 8.0)] {
+    let r = evaluate(x0, x1, x2, ...)?;
+    assert!((r.b_output[0] - (x0 - x2)).abs() &lt; DETECTION_TOLERANCE);
+}
+
+// A.4 — change sensitivity, δ = 0.5
+let r_base  = evaluate(0.0, 3.0, 5.0, ...)?;
+let r_delta = evaluate(0.0, 3.5, 5.0, ...)?;
+assert!((r_delta.a_output[0] - (r_base.a_output[0] - 0.5)).abs() &lt; DETECTION_TOLERANCE);
+assert!((r_delta.a_output[1] - (r_base.a_output[1] + 0.5)).abs() &lt; DETECTION_TOLERANCE);
+
+// A.5 — undeclared edge rejection
+assert!(evaluate_with_extra_edge(...).is_err());
+
+// A.7 — interior-locus condition
+let result = evaluate_boundary_locus(x0, x_lower, x2, ...);
+assert!(matches!(result, Err(RegionError::LocusNotInterior { .. })));
+
+// A.8 — OPEN conditions surfaced
+assert!(r.kernel_open.contains(&amp;KernelOpenCondition::RhoMaxSelectionRule));
+assert!(r.kernel_open.contains(&amp;KernelOpenCondition::RhoSaturatingForm));</code></pre>
+
+<h4>Constraints on Implementation (Proposed)</h4>
+<ul>
+  <li>No modification to <code>irrs-kernel</code> (frozen Kernel V8).</li>
+  <li>No modification to <code>irrs-session</code>.</li>
+  <li>No new mathematical operator introduced.</li>
+  <li>All declared parameters explicitly constructed; no default substitution.</li>
+  <li>All OPEN conditions surfaced in <code>M0EvaluationResult.kernel_open</code>.</li>
+  <li>ParameterProvenance accurately reflects what has been established (Illustrative at M0).</li>
+  <li>DETECTION_TOLERANCE = 1e-12 used for all numerical comparisons.</li>
+  <li>Any χ computation marked as OPEN until RhoSaturatingForm and RhoMaxSelectionRule are closed by Origin.</li>
+</ul>
+
+<hr style="border:none; border-top:1px solid var(--rule); margin:52px 0 32px">
+
+<div class="notice stop">
+  <strong>M0 Complete — Stop</strong>
+  This document is the complete M0 Mathematical Specification for the Minimal Relational AI Computational Core. No implementation has been performed. No existing kernel files have been modified. No M1 work has been initiated. The specification is returned to the independent Verifier (ChatGPT) and Origin for review. No further work is authorized until Origin grants M1 authorization.
+</div>
+
+<div class="doc-footer">
+  <div>M0 Mathematical Specification — Minimal Relational AI Computational Core</div>
+  <div>Generator: Claude Sonnet 4.6 · Session: session_01CFPKeATovNRJR4oHjYyLM6</div>
+  <div>Kernel authority: Metatron Dynamics Kernel V8 (2026-09-27; discipline 2026-09-29)</div>
+  <div style="margin-top:8px">Bounded over D. No claim beyond D.</div>
+</div>
+
+</div>
