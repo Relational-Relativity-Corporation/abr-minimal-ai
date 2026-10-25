@@ -1,0 +1,11 @@
+[build-system]
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "irrs-kernel-py"
+requires-python = ">=3.9"
+description = "PyO3 binding for Frozen Kernel V8 operators (A, B). R is not exposed: rho_base/chi0 OPEN."
+
+[tool.maturin]
+module-name = "irrs_kernel_py"

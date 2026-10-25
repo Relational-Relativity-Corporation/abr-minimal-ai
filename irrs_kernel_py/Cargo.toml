@@ -1,0 +1,17 @@
+[package]
+name = "irrs-kernel-py"
+version = "0.1.0"
+edition = "2021"
+description = "PyO3 binding for Frozen Kernel V8 (irrs-kernel). Generator only — does not modify abr-irrs."
+
+# This crate wraps the frozen irrs-kernel for Python access.
+# It does NOT modify irrs-kernel. All kernel operator logic is in the frozen crate.
+# R operator is intentionally NOT exposed: rho_base and chi0 are OPEN (undeclared through M).
+
+[lib]
+name = "irrs_kernel_py"
+crate-type = ["cdylib"]
+
+[dependencies]
+irrs-kernel = { path = "../../abr-irrs/irrs-kernel" }
+pyo3 = { version = "0.22", features = ["extension-module"] }
