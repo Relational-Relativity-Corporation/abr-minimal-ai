@@ -205,6 +205,9 @@ The accumulated Sigma over the complete trajectory:
 
 This is the sampling independence property of the A→Sigma path. It holds in exact arithmetic. Numerical differences across rates arise only from floating-point rounding: O(f · machine_epsilon) error for N = T·f additions, which grows as `O(√f)` under random rounding (IEEE 754).
 
+> **§7 Correction (Generator Command — Relational State, B/R, and Memory Reconciliation):**
+> The telescoping convergence proof above applies to **open-loop replay of a fixed physical trajectory**. The physical trajectory τ_s(t) is held constant across all sampling schedules; only the observation timestamps differ. This proof does not establish that closed-loop behavior is sampling-rate-invariant. In a closed-loop system, the v_cmd output of each step feeds back into the plant. At different sampling rates, v_cmd updates occur at different intervals, producing different physical plant responses and consequently a different physical trajectory τ_s(t). Open-loop replay and closed-loop physical response are structurally different: rate-invariance of the former does not imply rate-invariance of the latter.
+
 ### 3.5 Intermediate State Divergence
 
 While total accumulation converges, the intermediate relational state at any fixed time T' < T may differ across rates. At 24 Hz, σ_v(T') is a coarse approximation; at 1000 Hz it more closely tracks the continuous integral. The difference at any intermediate time T' is bounded by:
