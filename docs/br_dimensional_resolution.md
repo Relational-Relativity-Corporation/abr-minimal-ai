@@ -12,6 +12,27 @@
 
 ---
 
+## 0. Governing Principle: The Sensor-Actuator Loop Is Already in Motion
+
+The ABR operators do not model a physical system from outside. They declare and formalize the relational structure of information that is already in motion in the sensor-actuator loop.
+
+The physical loop for M0:
+
+```
+τ_s(t) [torque sensor] → [ABR operator chain] → v_cmd(t) [motor voltage command]
+         ↑                                                        |
+         └────────────────── [motor physics] ────────────────────┘
+                          τ = K_T × I = K_T × v_cmd / R_W
+```
+
+The motor carries winding current I = τ/K_T. The resistance drop across the winding is V = I × R_W = τ × R_W/K_T. This voltage exists in the circuit as a physical potential at every moment the motor is running. M admits τ_s; the NodeField declares the electrical potential the motor circuit already holds as a consequence of the admitted torque. The operators then read, accumulate, and formalize the relational state of a loop that is already executing.
+
+v_cmd is the voltage the ABR system outputs into the motor drive — a physical electrical quantity that immediately enters the running circuit and produces a new torque. The sensor reads the torque consequence of v_cmd. The loop was in motion before the operators were declared; the operators give its relational structure a formal home.
+
+**Consequence for this specification:** any process the operators compute is a process that is physically occurring in the running system. ρ[e_τV] is computed at every step because the antisymmetric relational tension between the admitted torque state and the reference is physically present at every step — not because a future topology extension will make it relevant. Δ_V is the actual voltage change that occurred in the circuit between steps. sigma_v is the accumulated electrical record of real circuit events.
+
+---
+
 ## 1. Root Cause: OC-M0R-6
 
 ### 1.1 What B Actually Does
@@ -53,13 +74,13 @@ A computes differences across edges. The NodeField carries four different physic
 | e_τI | 25.000 A | {e_IV} | 25.0 A + 17.5 V = 42.5 [A + V] | **FAIL** |
 | e_IV | 17.500 V | {} | 17.500 V | PASS (terminal only) |
 
-**Root cause of OC-M0R-6:** The M0 V2 topology conflates two structurally distinct mechanisms:
+**Root cause of OC-M0R-6:** The M0 V2 topology conflates two structurally distinct aspects of the running loop:
 
-1. **Temporal persistence** — the A-operator difference between present and prior torque observations. This is not a spatial relationship; it is the kernel's authorized persistence mechanism (PersistenceState, operator_a_persistence).
+1. **Temporal persistence** — the change in circuit state between steps. The motor circuit carries a different voltage potential at t than at t−1. This temporal difference belongs in the kernel's authorized persistence mechanism (PersistenceState, operator_a_persistence), not in a spatial topology edge.
 
-2. **Domain transformation** — the algebraic mapping τ → I → V via declared constants K_T and R_W. This is not a kernel operator; it is a declared physical law applied at the NodeField level before the operators run.
+2. **Physical circuit state** — the voltage the motor circuit carries at the present moment as a consequence of the admitted torque. This is V = τ_s × R_W/K_T, a physical potential in the running circuit. It belongs in the NodeField declaration, where M declares the admitted electrical state before the operators run. It is not a domain transformation the operators perform; it is the circuit state they receive.
 
-The M0 V2 declaration places both mechanisms in the spatial topology as edges. The kernel's B operator then accumulates incoherent combinations of N·m, A, and V values.
+The M0 V2 declaration places both aspects in the spatial topology as edges, treating the physical circuit state as a computation B should perform via ÷K_T and ×R_W. The kernel's B operator performs no such operations. B accumulates and the incoherent combinations of N·m, A, and V values follow.
 
 ---
 
@@ -77,26 +98,22 @@ PersistenceState::from_prior(e_current)  →  operator_a_persistence
 
 **e_persist is removed from the spatial topology.** No temporal edge is introduced to replace it.
 
-### 2.2 Domain Transformation in the NodeField
+### 2.2 Physical Circuit State in the NodeField
 
-The algebraic conversion τ [N·m] → V [V]:
-
-```
-V_equiv = τ_s × R_W / K_T
-```
-
-This uses both declared motor constants. With K_T = 1.0 N·m/A and R_W = 0.7 Ω:
+The motor circuit carries winding current I = τ_s/K_T and the resistance drop V = I × R_W = τ_s × R_W/K_T as physical electrical quantities at every moment the loop is running. With K_T = 1.0 N·m/A and R_W = 0.7 Ω:
 
 ```
-V_equiv [V] = τ_s [N·m] × R_W [Ω] / K_T [N·m/A]
-            = τ_s × 0.7  (numerical)
+V = τ_s [N·m] × R_W [Ω] / K_T [N·m/A] = τ_s × 0.7    [V]
 ```
 
-The torque observation is expressed as a voltage-equivalent potential in the NodeField. The conversion chain τ → I → V is embedded in this single factor R_W/K_T, which uses both declared constants. The intermediate current quantity I = τ/K_T is not represented as a separate graph node, because:
+M admits τ_s. The NodeField declares the voltage the motor circuit already carries as a consequence of the admitted torque. This is not a conversion the operators perform — it is the physical electrical state of the running loop, admitted through M at each step.
+
+The factor R_W/K_T uses both declared motor constants (K_T the torque-to-current ratio, R_W the winding resistance). The intermediate current I = τ_s/K_T is present in the circuit but is not represented as a separate graph node because:
 
 1. I is not in the observable extent (m_declaration §2).
-2. I is a derived quantity, not an admitted observation.
-3. A separate intermediate locus carrying I would require an independent node value that either duplicates the V_equiv value (making it redundant) or introduces temporal information (prohibited for the spatial topology).
+2. A separate intermediate locus carrying I would require a node value that either duplicates the voltage value (making it redundant) or introduces temporal information (prohibited for the spatial topology).
+
+The single NodeField entry f.data[0][v_τ] = τ_s × R_W/K_T declares the complete electrical state of the torque locus. The operators receive this electrical state and operate on it.
 
 ### 2.3 Corrected Spatial Topology
 
@@ -104,8 +121,8 @@ The torque observation is expressed as a voltage-equivalent potential in the Nod
 
 | Locus | Symbol | NodeField value | Unit | Role |
 |-------|--------|-----------------|------|------|
-| v_τ | Torque locus | τ_s × R_W/K_T | V | Present torque as voltage potential |
-| v_ref | Electrical reference | 0.0 | V | Declared zero-voltage reference |
+| v_τ | Torque locus | τ_s × R_W/K_T | V | Electrical potential the motor circuit carries at the admitted torque |
+| v_ref | Electrical reference | 0.0 | V | Circuit ground — declared zero-voltage reference |
 
 **Edges (1):**
 
@@ -135,7 +152,7 @@ f.data[0][v_τ]   = τ_s(t) × R_W / K_T     [V]
 f.data[0][v_ref] = 0.0                     [V]
 ```
 
-The reference locus carries the declared electrical ground. This is a fixed declared value, not an observation.
+The reference locus carries the circuit ground — the actual zero-voltage reference of the motor drive circuit. It is a fixed declared value, not an observation. v_cmd is measured with respect to this reference.
 
 ---
 
@@ -206,7 +223,7 @@ All R outputs: **V** ✓
 E_current.spatial[0][e_τV] = R.spatial[0][e_τV] = τ_s(t) × R_W/K_T    [V]
 ```
 
-This is the Phase 1 relational potential — the present torque expressed as a voltage-equivalent. It is stored in PersistenceState for Phase 2 at the next step.
+This is the Phase 1 relational state — the electrical potential the motor circuit carries at the present admitted torque. It is stored in PersistenceState so Phase 2 at the next step can read the change in circuit state between steps.
 
 ---
 
@@ -244,7 +261,7 @@ chi[v_τ]   = |A.spatial[0][e_τV]| = τ_s × R_W/K_T    [V]
 chi[v_ref] = |A.spatial[0][e_τV]| = τ_s × R_W/K_T    [V]
 ```
 
-**Chi is dimensionally homogeneous [V].** The normalization is achieved by declaring the NodeField in a single physical dimension (V) using the declared domain mapping R_W/K_T, before the kernel receives it. No kernel modification is required.
+**Chi is dimensionally homogeneous [V].** The coherence is achieved by declaring the NodeField in the physical dimension the motor circuit already carries (V), using the actual motor characteristic R_W/K_T, before the kernel receives it. No kernel modification is required.
 
 ### 4.3 χ₀ Candidate: V_BUS = 48.0 V
 
@@ -256,11 +273,11 @@ Chi is in volts. The declared saturation parameter χ₀ must carry the same uni
 
 The declared domain has one voltage ceiling: **V_BUS = 48.0 V** (declared drive specification, m_declaration §3).
 
-Physical justification: V_BUS is the maximum electrical potential available to the drive circuit. As chi → V_BUS, the torque observation is approaching the declared electrical maximum. V_BUS provides the natural saturation reference: at chi = V_BUS, ρ = ρ_base/2 (half-maximum coupling weight).
+Physical justification: V_BUS is the maximum electrical potential the drive circuit can supply. As chi → V_BUS, the motor is approaching the declared electrical ceiling — the point where the circuit can no longer increase the voltage it carries. V_BUS provides the natural saturation reference: at chi = V_BUS, ρ = ρ_base/2 (half-maximum coupling weight). The saturation is a property of the running circuit, not a mathematical convenience.
 
 Cross-check: TAU_ELEC_MAX × R_W/K_T = 68.57 × 0.7 = 48.0 V = V_BUS ✓
 
-The electrical maximum torque, expressed in the NodeField's voltage unit, equals V_BUS exactly. This confirms V_BUS as the natural saturation scale.
+The declared electrical maximum torque, expressed in the motor circuit's voltage unit, equals V_BUS exactly. The same circuit ceiling that bounds admissible torques also bounds chi. This is not a coincidence — chi measures the same electrical state the admission rule guards.
 
 **OC-FD-2 resolution:** χ₀ = V_BUS = 48.0 V [V] — follows from declared domain constants.
 
@@ -302,7 +319,7 @@ A_p.spatial[0][e_τV] = E_current.spatial[0][e_τV] − E_prior.spatial[0][e_τV
                      = Δ_V                             [V]
 ```
 
-**Δ_V = Δ_τ × R_W/K_T is produced exactly by the authorized persistence mechanism, without any spatial coupling edges.** The physical conversion τ → V is expressed via the NodeField normalization R_W/K_T; the temporal difference Δ_τ is expressed via the persistence operator's EdgeField subtraction.
+**Δ_V is the actual voltage change that occurred in the motor circuit between steps t−1 and t.** The motor circuit carried τ_s(t−1) × R_W/K_T at the prior step and carries τ_s(t) × R_W/K_T at the present step. The persistence operator reads this change directly from the stored Phase 1 EdgeField states — no spatial coupling edges required. The circuit event is already in the PersistenceState; operator_a_persistence reads it.
 
 ### 5.2 B_p and R_p (Phase 2)
 
@@ -330,7 +347,7 @@ Phase 2 output R_p[e_τV] = Δ_V ✓. The antisymmetric contribution is structur
         = σ_v(t−1) + Δ_V                                   [V]
 ```
 
-Sigma accumulates the Phase 2 R operator output. This preserves the formal role of R in the Sigma path (not substituted by B or A_p directly).
+Sigma accumulates the Phase 2 R operator output — the actual voltage changes that occurred in the motor circuit at each step. σ_v is the electrical record of the circuit's history of torque events. It is not an approximation or a model of the circuit; it is the accumulated relational state of the running loop. R is the formal path (not substituted by B or A_p directly).
 
 ---
 
@@ -448,16 +465,16 @@ R[0][e_τV] = B[0][e_τV]
 R[0][e_τV] = B[0][e_τV] = τ_s × R_W/K_T             [V]
 ```
 
-The B value is known exactly from admitted observables and declared constants. The antisymmetric ρ contribution propagates to zero in the output — but ρ is computed.
+The circuit voltage is known exactly from the admitted torque and declared motor constants. The antisymmetric ρ contribution propagates to zero in R's output for the 1-edge topology — but ρ is evaluated at every step as a live quantity.
 
-**Numerical evaluation (ρ is live at each step):**
+**ρ at each step (live evaluation):**
 
 ```
 ρ[e_τV] = ρ_base × chi[v_τ] / (χ₀ + chi[v_τ])
          = ρ_base × (τ_s × R_W/K_T) / (V_BUS + τ_s × R_W/K_T)  [dimensionless]
 ```
 
-ρ[e_τV] is a non-zero evaluated quantity at every step (ρ_base × 0.2866 for the disturbance example). It multiplies Σ_succ − Σ_pred, which is zero by topology structure (relational_isolation = true). The zero propagated into R[0][e_τV] is the product of a live ρ value and a structurally empty adjacency sum — not the absence of ρ. ρ_base governs a running quantity.
+ρ[e_τV] is non-zero at every step the loop is running (ρ_base × 0.2866 for the disturbance example). It is the antisymmetric coupling weight of the relational tension the circuit carries — the ratio of the present circuit voltage to the total electrical range (present + ceiling). ρ multiplies Σ_succ − Σ_pred; that sum is zero by topology structure because e_τV has no adj⁺ or adj⁻. The zero propagated into R[0][e_τV] is the product of a live ρ value and a structurally absent adjacency. ρ itself is not absent. ρ_base governs a quantity that is computed in the running system at every step.
 
 **Same analysis for Phase 2 R_p:**
 
@@ -503,12 +520,11 @@ Both must be declared through M before evaluation. Neither has a default.
 
 ### 8.3 Parameters That Are Genuinely Independent Domain Choices
 
-**ρ_base (dimensionless):** Represents the maximum coupling weight of the antisymmetric relational term as the declared system approaches its electrical ceiling. No declared domain constant determines its value.
+**ρ_base (dimensionless):** The antisymmetric coupling coefficient — the ceiling on how strongly R can modify B when the relational tension in the circuit is resolved through connected edges. No declared domain constant determines its value.
 
-- For M0's 1-edge topology: ρ_base's contribution is structurally zero in both Phase 1 and Phase 2 (relational_isolation = true; antisymmetric term has no coefficients)
-- ρ_base is still required as a finite declaration by `require_rho_declaration`
-- ρ_base becomes numerically significant only when the topology is extended to include interior nodes (multi-edge path where adj⁺ or adj⁻ is non-empty)
-- Physical interpretation: the dimensionless ceiling on how strongly R modifies B in the presence of antisymmetric torque-voltage tension
+ρ[e_τV] = ρ_base × (circuit voltage) / (circuit voltage + electrical ceiling) is evaluated at every step of the running loop. It expresses the antisymmetric relational weight of the present circuit state relative to the total electrical range. Its product with the adjacency sum is zero by topology structure (e_τV has no adj⁺ or adj⁻), so ρ does not propagate into R's output for the 1-edge M0 topology. But ρ is computed — the relational tension it measures is present in the circuit at every step.
+
+ρ_base is required as a finite declaration by `require_rho_declaration` before evaluation. It is an active open condition, not a deferred one: the system is running with ρ at every step.
 
 **OPEN: OC-FD-1.** ρ_base must be declared by Origin before evaluation.
 
@@ -634,7 +650,7 @@ f.data[0][v_τ]   ← τ_s(t) × R_W / K_T        [V]
 f.data[0][v_ref] ← 0.0                         [V]
 ```
 
-The conversion τ [N·m] → V [V] via R_W/K_T is applied once, at the NodeField. The kernel operates entirely in volts.
+The motor circuit carries V = τ_s × R_W/K_T as a physical electrical potential at the admitted torque. M admits τ_s; the NodeField declares this circuit voltage. v_ref is the circuit ground. The kernel receives an electrical state and operates entirely in volts.
 
 ---
 
@@ -652,37 +668,37 @@ The conversion τ [N·m] → V [V] via R_W/K_T is applied once, at the NodeField
 τ_s(t) → M (admission) → NodeField construction → operator_e_v5 → Sigma → C → v_cmd
 ```
 
-**Phase 1 (spatial state, A→B→R):**
+**Phase 1 (present circuit state, A→B→R):**
 
 ```
-A[0][e_τV]  = τ_s(t) × R_W/K_T                          [V]
-B[0][e_τV]  = A[0][e_τV]                                 [V]  (terminal)
-chi[v_τ]    = A[0][e_τV] = τ_s(t) × R_W/K_T             [V]
-ρ[e_τV]     = ρ_base × chi[v_τ] / (V_BUS + chi[v_τ])    [—]
-R[0][e_τV]  = B[0][e_τV]  (antisymmetric term = 0)       [V]
-E_current   = R output → stored as PersistenceState for next step
+A[0][e_τV]  = τ_s(t) × R_W/K_T                          [V]  — relational potential of present circuit state
+B[0][e_τV]  = A[0][e_τV]                                 [V]  (terminal — no adjacency to accumulate)
+chi[v_τ]    = A[0][e_τV] = τ_s(t) × R_W/K_T             [V]  — circuit voltage at v_τ
+ρ[e_τV]     = ρ_base × chi[v_τ] / (V_BUS + chi[v_τ])    [—]  — antisymmetric coupling weight (live, non-zero)
+R[0][e_τV]  = B[0][e_τV]  (antisymmetric term = 0 by topology structure)  [V]
+E_current   = R output → stored in PersistenceState; records circuit voltage at this step
 ```
 
-**Phase 2 (temporal change, A_p→B_p→R_p):**
+**Phase 2 (circuit voltage change between steps, A_p→B_p→R_p):**
 
 ```
 A_p[0][e_τV]  = E_current[0][e_τV] − E_prior[0][e_τV]
               = (τ_s(t) − τ_s(t−1)) × R_W/K_T
-              = Δ_V                                        [V]
+              = Δ_V                                        [V]  — actual voltage change that occurred
 B_p[0][e_τV]  = Δ_V                                       [V]  (terminal)
 chi_p[v_τ]    = Δ_V                                        [V]
-ρ_p[e_τV]     = ρ_base × Δ_V / (V_BUS + Δ_V)             [—]
-R_p[0][e_τV]  = Δ_V  (antisymmetric term = 0)             [V]
+ρ_p[e_τV]     = ρ_base × Δ_V / (V_BUS + Δ_V)             [—]  (live, non-zero)
+R_p[0][e_τV]  = Δ_V  (antisymmetric term = 0 by topology structure)  [V]
 ```
 
 **Sigma and C (unchanged structure):**
 
 ```
 σ_v(t)  = σ_v(t−1) + R_p[0][e_τV]
-        = σ_v(t−1) + Δ_V                                  [V]
+        = σ_v(t−1) + Δ_V                                  [V]  — accumulated electrical record of circuit events
 
 frac    = clamp((θ_target − θ) / θ_target, −1, 1)
-v_cmd   = σ_v(t) + frac × V_RAISE                         [V]
+v_cmd   = σ_v(t) + frac × V_RAISE                         [V]  — voltage output into motor drive
 ```
 
 ---
