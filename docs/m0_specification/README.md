@@ -8,7 +8,7 @@
 **Verifier:** ChatGPT (independent)  
 **Origin:** Human authorization  
 **Date:** 2026-10-25  
-**Status:** M0 complete — awaiting independent Verifier review  
+**Status:** M0 V2 complete — 6 OPEN conditions returned to Origin  
 
 ---
 
@@ -22,20 +22,51 @@ This document is the M0 output: a mathematical specification only. No implementa
 
 ## Contents
 
-- [`m0_spec.html`](m0_spec.html) — Full specification document (rendered)  
-- Published artifact: https://claude.ai/artifact/H7oE3CXMByaHYUhqakZoth
+| File | Description | Status |
+|------|-------------|--------|
+| [`m0_spec.html`](m0_spec.html) | V1 — Abstract 3-node path topology (historical evidence) | Complete — preserved |
+| [`m0_spec_v2_robotics.html`](m0_spec_v2_robotics.html) | V2 — Sensor–actuator domain from abr-robotics-demo | Current |
+
+Published artifact (V1): https://claude.ai/artifact/H7oE3CXMByaHYUhqakZoth
 
 ---
 
-## Task summary
+## V2 — Sensor–Actuator Domain (current)
+
+Source domain: **abr-robotics-demo V0.5.2**, commit `09ea3052dbb0fb0c6e8d985bb026591080848401`
+
+### Domain D at a glance
+
+| Cardinality | Value |
+|-------------|-------|
+| Loci | 4 (v_τ₀, v_τ₁, v_ΔI, v_ΔV) |
+| Directed edges | 3 (e_persist, e_τI, e_IV) |
+| Interior loci | 1 (v_ΔI) |
+| Cycles in single-step topology | 0 |
+
+### Task summary (V2)
 
 | Task | Subject | Status |
 |------|---------|--------|
-| 1 | Minimal observational domain (3-node path topology, interior-locus) | Complete |
-| 2 | Relational representation via A→B→R operator chain | Complete |
-| 3 | Independent evaluation criteria (A.1–A.9), Kernel V8 conformance vs functional success | Complete |
-| 4 | Path to transformation and attention without new operators | Complete |
-| 5 | Evidence package: declaration, worked example, acceptance criteria, proposed Rust plan | Complete |
+| 1 | Physical declaration recovered from abr-robotics-demo | Complete |
+| 2 | Relational domain D and mapping M from sensor–actuator relationships | Complete |
+| 3 | Kernel V8 operator mapping: A (PASS), B (PASS), R (OPEN) | Complete |
+| 4 | Minimal AI representation experiment: A.1–A.9 evaluation | Complete |
+| 5 | Worked mathematical example — disturbance frame (25 N·m) | Complete |
+| 6 | Revised M0 handoff: PASS/FAIL/OPEN, acceptance criteria, M1 scope | Complete |
+
+### New findings (V2)
+
+| ID | Description |
+|----|-------------|
+| SF-1 | Single-step topology is acyclic — physical feedback cycle does not close within D at step t |
+| SF-2 | B full tensor: B(g)[e_τI] = 42.500 present but not currently consumed; only terminal B(g)[e_IV] = 17.500 used by Sigma |
+
+---
+
+## V1 — Abstract 3-node topology (historical evidence)
+
+The original M0 specification used an abstract 3-node path topology. It established the mathematical framework and identified the same four OPEN conditions for the kernel. Preserved without modification as historical evidence per the M0 Revision Generator Instruction.
 
 ---
 
@@ -53,20 +84,25 @@ All mathematical content derives from the frozen Kernel V8 in [`abr-irrs`](https
 
 ---
 
-## OPEN conditions
+## OPEN conditions (V2 — 6 total)
 
-Four conditions remain open at M0; none were resolved by this specification:
+Six conditions remain open at M0 V2. Four are carried from V1; two are new findings from this revision:
 
-1. **RhoSaturatingForm** (§11.2, §18) — functional form of ρ(ρ_base, χ, χ₀) not authorized
-2. **RhoMaxSelectionRule** (§11.2, §18) — max-selection rule for χ not authorized  
-3. **χ[e] for acyclic path topology** — definition of antisymmetric circulation on a path graph (no cycles) not established
-4. **Illustrative parameter provenance** — all declared values are ParameterProvenance::Illustrative; no EvidenceRecord or VerificationRecord submitted
+| ID | Description | Status |
+|----|-------------|--------|
+| OC-FD-1 | `rho_base` — antisymmetric coupling weight (m_declaration §6) | OPEN — requires M declaration |
+| OC-FD-2 | `chi_0` — initial antisymmetric state for R (m_declaration §6) | OPEN — requires M declaration |
+| OC-M0R-1 | RhoSaturatingForm — functional form of ρ(ρ_base, χ, χ₀) | OPEN — requires Kernel V9 authorization |
+| OC-M0R-2 | RhoMaxSelectionRule — max-selection rule for χ | OPEN — requires Kernel V9 authorization |
+| OC-M0R-3 | χ[e] for acyclic path topology — no cycles in single-step D | OPEN — carried from V1; confirmed in robotics domain |
+| OC-M0R-5 | Cross-step topology — physical cycle spans step boundaries; v_ΔV(t)→v_τ₁(t+1) not declared | **NEW** — SF-1, this revision |
+| OC-M0R-6 | B full tensor usage — B(g)[e_τI] not consumed; domain decision needed | **NEW** — SF-2, this revision |
 
 ---
 
 ## Stop condition
 
-M0 is complete. No implementation modules have been created. No AI architecture has been introduced. No M1 work has been initiated. Origin authorization is required before any of these proceed.
+M0 V2 is complete. No implementation modules have been created. No AI architecture has been introduced. No M1 work has been initiated. Six OPEN conditions are returned to Origin. Origin authorization is required before any of the following proceed: M1 implementation, Kernel V8 modification, ρ_base or χ₀ declaration, or cross-step topology declaration.
 
 ---
 

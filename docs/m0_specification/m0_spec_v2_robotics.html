@@ -1,0 +1,1154 @@
+<title>M0 Spec V2 — Robotics Domain</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,300;0,8..60,400;0,8..60,600;1,8..60,300;1,8..60,400&family=JetBrains+Mono:wght@400;500&display=swap">
+
+<style>
+/* ── Tokens ─────────────────────────────────────────── */
+:root {
+  --bg:        #f8f7f4;
+  --bg2:       #eeecea;
+  --bg3:       #e3e0dc;
+  --fg:        #1a1714;
+  --fg2:       #4a4540;
+  --fg3:       #7a7268;
+  --accent:    #2d5a8e;
+  --accent2:   #1e3f63;
+  --green:     #1a6640;
+  --red:       #8b1a1a;
+  --amber:     #7a5200;
+  --green-bg:  #e8f5ee;
+  --red-bg:    #faeaea;
+  --amber-bg:  #fff8e6;
+  --rule:      #ccc8c2;
+  --code-bg:   #ecebe7;
+  --mono:      'JetBrains Mono', 'Fira Mono', monospace;
+  --serif:     'Source Serif 4', Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #141210;
+    --bg2:       #1e1c19;
+    --bg3:       #272420;
+    --fg:        #e8e4df;
+    --fg2:       #b0a89e;
+    --fg3:       #786e64;
+    --accent:    #6b9fd4;
+    --accent2:   #8ab8e8;
+    --green:     #4caf78;
+    --red:       #d47070;
+    --amber:     #d4a842;
+    --green-bg:  #0d2918;
+    --red-bg:    #291010;
+    --amber-bg:  #291e00;
+    --rule:      #3a3530;
+    --code-bg:   #1e1c19;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:        #141210;
+  --bg2:       #1e1c19;
+  --bg3:       #272420;
+  --fg:        #e8e4df;
+  --fg2:       #b0a89e;
+  --fg3:       #786e64;
+  --accent:    #6b9fd4;
+  --accent2:   #8ab8e8;
+  --green:     #4caf78;
+  --red:       #d47070;
+  --amber:     #d4a842;
+  --green-bg:  #0d2918;
+  --red-bg:    #291010;
+  --amber-bg:  #291e00;
+  --rule:      #3a3530;
+  --code-bg:   #1e1c19;
+  color-scheme: dark;
+}
+
+/* ── Reset / Base ───────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--serif);
+  font-size: 17px;
+  line-height: 1.65;
+  padding-block: 3rem 6rem;
+  padding-left:  max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+
+/* ── Layout ─────────────────────────────────────────── */
+.page { max-width: 820px; margin: 0 auto; }
+
+/* ── Typography ─────────────────────────────────────── */
+h1 { font-size: 1.75rem; font-weight: 600; letter-spacing: -0.01em; line-height: 1.2; text-wrap: balance; margin: 0 0 0.25rem; }
+h2 { font-size: 1.2rem; font-weight: 600; letter-spacing: 0.02em; text-transform: uppercase; color: var(--fg3); margin: 2.5rem 0 0.75rem; border-bottom: 1px solid var(--rule); padding-bottom: 0.4rem; }
+h3 { font-size: 1.05rem; font-weight: 600; margin: 1.5rem 0 0.5rem; color: var(--fg); }
+h4 { font-size: 0.95rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--fg3); margin: 1.2rem 0 0.4rem; }
+p { margin: 0.6rem 0 0.8rem; max-width: 68ch; }
+p + p { margin-top: 0.5rem; }
+strong { font-weight: 600; }
+em { font-style: italic; }
+small { font-size: 0.82rem; color: var(--fg3); }
+a { color: var(--accent); text-decoration: none; border-bottom: 1px solid transparent; }
+a:hover { border-bottom-color: var(--accent); }
+
+/* ── Header block ───────────────────────────────────── */
+.doc-header {
+  border-left: 4px solid var(--accent);
+  padding: 1.2rem 1.4rem;
+  background: var(--bg2);
+  border-radius: 0 6px 6px 0;
+  margin-bottom: 2rem;
+}
+.doc-header h1 { color: var(--accent2); }
+.doc-header .sub { color: var(--fg2); font-size: 0.9rem; margin-top: 0.6rem; display: flex; flex-wrap: wrap; gap: 0.6rem 1.4rem; }
+.doc-header .sub span { white-space: nowrap; }
+
+/* ── Status badges ──────────────────────────────────── */
+.badge {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  padding: 0.15em 0.5em;
+  border-radius: 3px;
+  vertical-align: middle;
+}
+.pass   { background: var(--green-bg); color: var(--green); }
+.fail   { background: var(--red-bg);   color: var(--red);   }
+.open   { background: var(--amber-bg); color: var(--amber); }
+.defer  { background: var(--bg3);      color: var(--fg3);   }
+
+/* ── Code / mono ────────────────────────────────────── */
+code, .mono {
+  font-family: var(--mono);
+  font-size: 0.84em;
+  background: var(--code-bg);
+  padding: 0.1em 0.35em;
+  border-radius: 3px;
+}
+pre {
+  font-family: var(--mono);
+  font-size: 0.82rem;
+  background: var(--code-bg);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1rem 1.1rem;
+  overflow-x: auto;
+  line-height: 1.55;
+  margin: 0.8rem 0 1rem;
+}
+pre code { background: none; padding: 0; font-size: inherit; }
+
+/* ── Math display ───────────────────────────────────── */
+.math-block {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--accent);
+  border-radius: 0 6px 6px 0;
+  padding: 0.9rem 1.2rem;
+  margin: 0.8rem 0 1rem;
+  font-family: var(--mono);
+  font-size: 0.85rem;
+  overflow-x: auto;
+  line-height: 1.7;
+}
+.math-block .label {
+  font-family: var(--serif);
+  font-size: 0.78rem;
+  color: var(--fg3);
+  display: block;
+  margin-bottom: 0.4rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Tables ─────────────────────────────────────────── */
+.tbl-wrap { overflow-x: auto; margin: 0.8rem 0 1.2rem; }
+table { border-collapse: collapse; width: 100%; font-size: 0.88rem; min-width: 480px; }
+th { background: var(--bg3); font-weight: 600; font-family: var(--mono); font-size: 0.75rem; letter-spacing: 0.04em; text-transform: uppercase; padding: 0.55rem 0.75rem; text-align: left; border-bottom: 2px solid var(--rule); white-space: nowrap; }
+td { padding: 0.5rem 0.75rem; border-bottom: 1px solid var(--rule); vertical-align: top; }
+tr:last-child td { border-bottom: none; }
+.num { font-family: var(--mono); font-size: 0.84rem; white-space: nowrap; }
+
+/* ── Finding / open-condition boxes ─────────────────── */
+.finding {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 1rem 1.2rem;
+  margin: 1rem 0;
+  background: var(--bg2);
+}
+.finding.open-cond  { border-left: 3px solid var(--amber); background: var(--amber-bg); }
+.finding.new-find   { border-left: 3px solid var(--accent); }
+.finding.pass-find  { border-left: 3px solid var(--green); background: var(--green-bg); }
+.finding .find-id   { font-family: var(--mono); font-size: 0.78rem; font-weight: 500; color: var(--fg3); margin-bottom: 0.3rem; }
+.finding p          { max-width: unset; margin: 0.2rem 0; }
+
+/* ── Task header ─────────────────────────────────────── */
+.task-header {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  margin-bottom: 0.2rem;
+}
+.task-num {
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--fg3);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Operator chain display ──────────────────────────── */
+.op-chain {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.1rem;
+  font-family: var(--mono);
+  font-size: 0.88rem;
+  padding: 0.9rem 1rem;
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  margin: 0.8rem 0;
+}
+.op-chain .arrow { color: var(--fg3); padding: 0 0.15rem; }
+.op-chain .op    { padding: 0.15em 0.5em; border-radius: 3px; }
+.op-chain .eval  { background: var(--green-bg); color: var(--green); }
+.op-chain .undef { background: var(--amber-bg); color: var(--amber); }
+.op-chain .pass  { background: var(--code-bg); color: var(--fg2); }
+
+/* ── Worked example cells ────────────────────────────── */
+.calc-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.6rem;
+  margin: 0.6rem 0;
+}
+@media (max-width: 540px) { .calc-row { grid-template-columns: 1fr; } }
+.calc-cell {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.7rem 0.9rem;
+}
+.calc-cell .lhs { font-family: var(--mono); font-size: 0.84rem; color: var(--fg2); margin-bottom: 0.2rem; }
+.calc-cell .rhs { font-family: var(--mono); font-size: 1.05rem; font-weight: 500; color: var(--fg); }
+.calc-cell .note { font-size: 0.78rem; color: var(--fg3); margin-top: 0.2rem; }
+
+/* ── Provenance tag ──────────────────────────────────── */
+.prov {
+  display: inline-block;
+  font-family: var(--mono);
+  font-size: 0.72rem;
+  color: var(--fg3);
+  border: 1px solid var(--rule);
+  padding: 0.1em 0.4em;
+  border-radius: 2px;
+  vertical-align: middle;
+}
+
+/* ── Topology diagram ────────────────────────────────── */
+.topo-diagram {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: 1.4rem 1.2rem;
+  margin: 0.8rem 0;
+  overflow-x: auto;
+}
+.topo-diagram pre {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font-size: 0.83rem;
+  color: var(--fg);
+}
+
+/* ── Section divider ─────────────────────────────────── */
+hr { border: none; border-top: 1px solid var(--rule); margin: 2rem 0; }
+
+/* ── Historical note ─────────────────────────────────── */
+.historical {
+  background: var(--bg2);
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: 0.8rem 1.1rem;
+  margin: 1rem 0;
+  font-size: 0.88rem;
+  color: var(--fg2);
+}
+.historical strong { color: var(--fg); }
+
+/* ── Stop-condition box ───────────────────────────────── */
+.stop-box {
+  border: 2px solid var(--accent);
+  border-radius: 8px;
+  padding: 1rem 1.2rem;
+  background: var(--bg2);
+  margin: 1.5rem 0 0.5rem;
+}
+.stop-box h4 { margin: 0 0 0.4rem; color: var(--accent); }
+</style>
+
+<div class="page">
+
+<!-- ═══════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════ -->
+<div class="doc-header">
+  <h1>M0 Specification V2 — Sensor–Actuator Relational Domain</h1>
+  <div class="sub">
+    <span><strong>Project:</strong> abr-minimal-ai</span>
+    <span><strong>Kernel:</strong> Metatron Dynamics V8 (2026-09-27; frozen)</span>
+    <span><strong>Source domain:</strong> abr-robotics-demo V0.5.2 (commit 09ea3052)</span>
+    <span><strong>Generator:</strong> Claude Sonnet 4.6</span>
+    <span><strong>Date:</strong> 2026-10-25</span>
+    <span><strong>Status:</strong> <span class="badge open">OPEN CONDITIONS PRESENT</span></span>
+  </div>
+</div>
+
+<div class="historical">
+  <strong>Historical record:</strong> This document supersedes the abstract three-node specification in
+  <code>m0_spec.html</code> (2026-10-25, commit 8cdf9e3). The previous specification is preserved as
+  historical evidence and must not be removed. Its OPEN conditions are carried forward and augmented
+  below.
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     GOVERNING DEFINITIONS (brief recap)
+═══════════════════════════════════════════════════ -->
+<h2>Governing definitions</h2>
+
+<p>
+  From <code>irrs-kernel/src/lib.rs</code> (frozen): <strong>"A directed relation declared from
+  observable information."</strong> Three foundational characteristics:
+</p>
+<ul>
+  <li><strong>Complexity</strong> — multiple observables; no isolated singleton</li>
+  <li><strong>Change as the only observable constant</strong> — relations evolve; no fixed state</li>
+  <li><strong>Bounded domain</strong> — D and M define the admission boundary</li>
+</ul>
+<p>
+  <strong>Declared-information rule (§1):</strong>
+  <em>not-evaluated ≠ evaluated with result 0.0</em>. An operator not evaluated for lack of
+  declared prerequisites leaves its output slot empty, not zero.
+</p>
+
+<!-- ═══════════════════════════════════════════════════
+     TASK 1 — PHYSICAL DECLARATION RECOVERED
+═══════════════════════════════════════════════════ -->
+<h2>Task 1 — Physical declaration recovered</h2>
+
+<div class="task-header">
+  <span class="task-num">Source</span>
+  <span>abr-robotics-demo V0.5.2 · commit <code>09ea3052dbb0fb0c6e8d985bb026591080848401</code> · 2026-10-06</span>
+</div>
+
+<h3>Region</h3>
+<p>Single-axis mechanical joint with electrical drive — load-bearing arm. A rigid arm of declared
+length carrying a declared point load, rotated about a fixed single-axis joint by an electrically
+driven motor, operating against gravity.</p>
+
+<h3>Observable extent</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Observable</th><th>Symbol</th><th>Units</th><th>Source</th><th>Provenance</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>Load-side joint torque (sensor)</td>
+      <td class="num">τ<sub>s</sub></td>
+      <td class="num">N·m</td>
+      <td>Load-side torque sensor output</td>
+      <td><span class="prov">Declared</span></td>
+    </tr>
+    <tr>
+      <td>Joint angle</td>
+      <td class="num">θ</td>
+      <td class="num">rad</td>
+      <td>Angular position encoder</td>
+      <td><span class="prov">Declared</span></td>
+    </tr>
+    <tr>
+      <td>Motor voltage command</td>
+      <td class="num">v<sub>cmd</sub></td>
+      <td class="num">V</td>
+      <td>Actuator electrical input</td>
+      <td><span class="prov">Declared</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="finding open-cond">
+  <div class="find-id">EXCLUSION — NOT in observable extent</div>
+  <p>The following quantities parameterize the plant simulation only. They do <strong>not</strong>
+  enter the ABR operator path at any step and are not admitted through M:</p>
+  <p><code>MASS</code> (3.0 kg) · <code>ARM</code> (0.5 m) · <code>G</code> (9.806 m/s²) ·
+  <code>I_EFF</code> (0.75 kg·m²) · <code>DAMPING</code> (0.5)</p>
+</div>
+
+<h3>Declared electrical constants</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Symbol</th><th>Value</th><th>Units</th><th>Description</th><th>Provenance</th></tr></thead>
+  <tbody>
+    <tr><td class="num">V<sub>BUS</sub></td><td class="num">48.0</td><td class="num">V</td><td>Declared drive bus voltage</td><td><span class="prov">EvidenceDeclared</span></td></tr>
+    <tr><td class="num">R<sub>W</sub></td><td class="num">0.7</td><td class="num">Ω</td><td>Winding resistance</td><td><span class="prov">EvidenceDeclared</span></td></tr>
+    <tr><td class="num">K<sub>T</sub></td><td class="num">1.0</td><td class="num">N·m/A</td><td>Motor torque constant</td><td><span class="prov">EvidenceDeclared</span></td></tr>
+    <tr><td class="num">TAU<sub>ELEC_MAX</sub></td><td class="num">68.57</td><td class="num">N·m</td><td>V<sub>BUS</sub> × K<sub>T</sub> / R<sub>W</sub> — admission boundary</td><td><span class="prov">Derived</span></td></tr>
+    <tr><td class="num">V<sub>RAISE</sub></td><td class="num">19.0</td><td class="num">V</td><td>Declared raise authority (C projection)</td><td><span class="prov">EvidenceDeclared</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>Declared topology edges</h3>
+<div class="topo-diagram">
+<pre>Edge tau_to_I :  Δτ  ──(÷ K_T = 1.0 N·m/A)──▶  ΔI   [Coupling]
+Edge I_to_V   :  ΔI  ──(× R_W = 0.7 Ω)    ──▶  ΔV   [Coupling]</pre>
+</div>
+
+<h3>Operator chain</h3>
+<div class="op-chain">
+  <span class="op pass">O<sub>t</sub></span>
+  <span class="arrow">→</span>
+  <span class="op pass">M</span>
+  <span class="arrow">→</span>
+  <span class="op pass">DeclaredRelations</span>
+  <span class="arrow">→</span>
+  <span class="op eval">A ✓</span>
+  <span class="arrow">→</span>
+  <span class="op eval">B ✓</span>
+  <span class="arrow">→</span>
+  <span class="op undef">[R : rho OPEN]</span>
+  <span class="arrow">→</span>
+  <span class="op eval">Σ ✓</span>
+  <span class="arrow">→</span>
+  <span class="op pass">C</span>
+  <span class="arrow">→</span>
+  <span class="op pass">u<sub>t</sub></span>
+</div>
+
+<p>Source: <code>docs/m_declaration.md</code> §5 · <code>abr_flex_demo.py</code> · <code>README.md</code>
+— all from commit 09ea3052.</p>
+
+<!-- ═══════════════════════════════════════════════════
+     TASK 2 — RELATIONAL DOMAIN D AND MAPPING M
+═══════════════════════════════════════════════════ -->
+<h2>Task 2 — Relational domain D and mapping M</h2>
+
+<h3>2.1 Observable relational loci</h3>
+
+<p>The operator chain for a single time step t requires four distinct loci. These are not imposed —
+they follow directly from what A and B require: A needs a prior and current torque observation;
+B needs the intermediate current and voltage change quantities.</p>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Locus</th><th>Variable</th><th>Value at step t</th><th>Units</th><th>Role</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="num">v<sub>τ₀</sub></td>
+      <td>τ<sub>s</sub>(t−1)</td>
+      <td>prior torque sensor reading</td>
+      <td class="num">N·m</td>
+      <td>Carried as A operator state</td>
+    </tr>
+    <tr>
+      <td class="num">v<sub>τ₁</sub></td>
+      <td>τ<sub>s</sub>(t)</td>
+      <td>current torque sensor reading</td>
+      <td class="num">N·m</td>
+      <td>Admitted through M at each step</td>
+    </tr>
+    <tr>
+      <td class="num">v<sub>ΔI</sub></td>
+      <td>Δ<sub>I</sub></td>
+      <td>A<sub>out</sub> / K<sub>T</sub></td>
+      <td class="num">A</td>
+      <td>Coupling locus; interior node</td>
+    </tr>
+    <tr>
+      <td class="num">v<sub>ΔV</sub></td>
+      <td>Δ<sub>V</sub></td>
+      <td>Δ<sub>I</sub> × R<sub>W</sub></td>
+      <td class="num">V</td>
+      <td>Terminal coupling locus; Sigma input</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>2.2 Directed edges and provenance</h3>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Edge</th><th>Direction</th><th>EdgeProvenance</th><th>Constant</th><th>Kernel role</th></tr></thead>
+  <tbody>
+    <tr>
+      <td class="num">e<sub>persist</sub></td>
+      <td><code>v<sub>τ₁</sub> → v<sub>τ₀</sub></code></td>
+      <td><span class="prov">Persistence</span></td>
+      <td>—</td>
+      <td>A operator acts here</td>
+    </tr>
+    <tr>
+      <td class="num">e<sub>τI</sub></td>
+      <td><code>v<sub>τ₁</sub> → v<sub>ΔI</sub></code></td>
+      <td><span class="prov">Coupling</span></td>
+      <td>K<sub>T</sub> = 1.0 N·m/A</td>
+      <td>B traversal; first coupling edge</td>
+    </tr>
+    <tr>
+      <td class="num">e<sub>IV</sub></td>
+      <td><code>v<sub>ΔI</sub> → v<sub>ΔV</sub></code></td>
+      <td><span class="prov">Coupling</span></td>
+      <td>R<sub>W</sub> = 0.7 Ω</td>
+      <td>B traversal; terminal coupling edge</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Direction of e<sub>persist</sub>:</strong> The persistence edge is directed
+<em>current → prior</em> (v<sub>τ₁</sub> → v<sub>τ₀</sub>). This follows from Kernel V8 §10:
+A(x)[e] = x[src(e)] − x[tgt(e)]. For A<sub>out</sub> = τ<sub>s</sub>(t) − τ<sub>s</sub>(t−1)
+to hold, src must be the current observation and tgt the prior.</p>
+
+<h3>2.3 Topology diagram</h3>
+
+<div class="topo-diagram">
+<pre>
+   PERSISTENCE SUB-TOPOLOGY           COUPLING SUB-TOPOLOGY
+   (A operator acts here)             (B operator traverses here)
+
+   v_τ₁ ─────e_persist────▶ v_τ₀     v_τ₁ ──e_τI(÷K_T)──▶ v_ΔI ──e_IV(×R_W)──▶ v_ΔV
+  [τ_s(t)]               [τ_s(t-1)]  [Δτ]               [ΔI]                   [ΔV]
+
+   Interior locus: NONE               Interior locus: v_ΔI ← tgt(e_τI) AND src(e_IV) ✓
+
+   Full topology step-t:  v_τ₀ ←── v_τ₁ ───▶ v_ΔI ───▶ v_ΔV
+                                    (acyclic DAG — see §2.4)
+</pre>
+</div>
+
+<h3>2.4 Physical feedback cycle vs. mathematical circulation</h3>
+
+<p>The robotics demo implements a physical sensor–actuator feedback cycle:</p>
+<div class="math-block">
+  <span class="label">Physical cycle (spans step boundaries)</span>
+  τ<sub>s</sub>(t) → A → B → Σ → C → v<sub>cmd</sub>(t) → plant → τ<sub>s</sub>(t+1)
+</div>
+
+<p>This cycle is real and produces the next observation. However, it <strong>crosses step
+boundaries</strong>: τ<sub>s</sub>(t+1) is produced by the plant and admitted through M at
+the next step. It is not part of D at step t.</p>
+
+<div class="finding new-find">
+  <div class="find-id">STRUCTURAL FINDING — SF-1 (new, this revision)</div>
+  <p><strong>Within a single step t, the topology is an acyclic DAG</strong> (v<sub>τ₀</sub> ←
+  v<sub>τ₁</sub> → v<sub>ΔI</sub> → v<sub>ΔV</sub>). No mathematical cycle exists within D
+  at a single time step. The R operator's antisymmetric circulation χ[e] is defined over edge
+  cycles in the topology. This definition has no natural instantiation on a two-edge acyclic path.</p>
+  <p>The physical feedback cycle does not automatically establish the mathematical circulation
+  required by R. They are distinct. Closing the cycle would require declaring a cross-step edge
+  (v<sub>ΔV</sub>(t) → v<sub>τ₁</sub>(t+1)) and a multi-step topology. This is returned to
+  Origin as <strong>OC-M0R-5</strong>.</p>
+</div>
+
+<h3>2.5 Interior-locus condition</h3>
+
+<div class="finding pass-find">
+  <div class="find-id">INTERIOR LOCUS — SATISFIED</div>
+  <p>Locus <strong>v<sub>ΔI</sub></strong> is both the target of e<sub>τI</sub> and the source
+  of e<sub>IV</sub>. The interior-locus condition (region.rs — at least one node that is both
+  target of one edge and source of another) is satisfied for the coupling sub-topology.</p>
+</div>
+
+<h3>2.6 Node field and admission</h3>
+<div class="math-block">
+  <span class="label">Node field x : V → ℝ at step t</span>
+  x[v<sub>τ₀</sub>] = τ<sub>s</sub>(t−1)   // carried in A operator state
+  x[v<sub>τ₁</sub>] = τ<sub>s</sub>(t)     // admitted through M
+  x[v<sub>ΔI</sub>] = A<sub>out</sub> / K<sub>T</sub>   // assigned by B traversal
+  x[v<sub>ΔV</sub>] = x[v<sub>ΔI</sub>] × R<sub>W</sub>  // assigned by B traversal
+</div>
+
+<div class="math-block">
+  <span class="label">Admission rule M (from m_declaration.md §4)</span>
+  Admit τ<sub>s</sub>(t)  iff  |τ<sub>s</sub>(t)| ≤ TAU<sub>ELEC_MAX</sub> = 68.57 N·m
+</div>
+
+<h3>2.7 Minimum relational configuration for A→B→R</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Operator</th><th>Required loci</th><th>Required edges</th><th>Additional prerequisites</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>A</td>
+      <td>v<sub>τ₀</sub>, v<sub>τ₁</sub></td>
+      <td>e<sub>persist</sub></td>
+      <td>Prior state τ<sub>s</sub>(t−1)</td>
+    </tr>
+    <tr>
+      <td>B</td>
+      <td>v<sub>τ₁</sub>, v<sub>ΔI</sub>, v<sub>ΔV</sub></td>
+      <td>e<sub>τI</sub>, e<sub>IV</sub></td>
+      <td>Declared K<sub>T</sub>, R<sub>W</sub></td>
+    </tr>
+    <tr>
+      <td>R</td>
+      <td>v<sub>τ₁</sub>, v<sub>ΔI</sub>, v<sub>ΔV</sub> (minimum)</td>
+      <td>e<sub>τI</sub>, e<sub>IV</sub></td>
+      <td>ρ<sub>base</sub>, χ₀, χ[e] defined for acyclic path, RhoSaturatingForm — all OPEN</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TASK 3 — KERNEL V8 OPERATOR MAPPING
+═══════════════════════════════════════════════════ -->
+<h2>Task 3 — Kernel V8 operator mapping</h2>
+
+<h3>3.1 A operator — EVALUATED</h3>
+
+<div class="math-block">
+  <span class="label">Kernel V8 §10 — A operator (operators.rs line 26)</span>
+  A(x)[e] = x[src(e)] − x[tgt(e)]
+
+  Applied to e<sub>persist</sub>:
+  A(x)[e<sub>persist</sub>] = x[v<sub>τ₁</sub>] − x[v<sub>τ₀</sub>]
+                             = τ<sub>s</sub>(t) − τ<sub>s</sub>(t−1)
+                             = A<sub>out</sub>
+</div>
+
+<p>Environmental quantities (MASS, ARM, G) do not enter A. The directed difference is
+the sole output; it is not the absolute torque reading.</p>
+
+<h3>3.2 B operator — EVALUATED</h3>
+
+<div class="math-block">
+  <span class="label">Kernel V8 §11.1 — B operator</span>
+  B(g)[e] = g[e] + Σ<sub>f ∈ succ(e)</sub> g[f]
+  where succ(e) = { f : src(f) = tgt(e) }
+</div>
+
+<p>The edge field g over the coupling sub-topology is initialized from A<sub>out</sub> via the
+declared coupling constants K<sub>T</sub> and R<sub>W</sub>:</p>
+
+<div class="math-block">
+  <span class="label">Edge field g (coupling sub-topology)</span>
+  g[e<sub>τI</sub>] = A<sub>out</sub> / K<sub>T</sub>   = Δ<sub>I</sub>
+  g[e<sub>IV</sub>] = Δ<sub>I</sub>  × R<sub>W</sub>   = Δ<sub>V</sub>
+
+  succ(e<sub>τI</sub>) = { e<sub>IV</sub> }   // tgt(e<sub>τI</sub>) = v<sub>ΔI</sub> = src(e<sub>IV</sub>)
+  succ(e<sub>IV</sub>) = { }              // terminal edge
+
+  B(g)[e<sub>τI</sub>] = g[e<sub>τI</sub>] + g[e<sub>IV</sub>] = Δ<sub>I</sub> + Δ<sub>V</sub>
+  B(g)[e<sub>IV</sub>] = g[e<sub>IV</sub>]                     = Δ<sub>V</sub>   // no successors
+</div>
+
+<div class="finding new-find">
+  <div class="find-id">FINDING — SF-2: B full tensor vs demo usage</div>
+  <p>The robotics demo uses <code>Δ<sub>V</sub> = g[e<sub>IV</sub>] = B(g)[e<sub>IV</sub>]</code>
+  as the Sigma input. The full B tensor also produces
+  <code>B(g)[e<sub>τI</sub>] = Δ<sub>I</sub> + Δ<sub>V</sub></code>, which is not currently
+  consumed. Both are valid B outputs over the declared topology. The choice of which B value
+  feeds Sigma is a domain declaration, not a kernel decision. Returned to Origin for
+  acknowledgment (<strong>OC-M0R-6</strong>).</p>
+</div>
+
+<h3>3.3 R operator — NOT EVALUATED</h3>
+
+<div class="math-block">
+  <span class="label">Kernel V8 §11.2 — R operator</span>
+  R(g)[e] = g[e] + ρ[e] · (Σ<sub>f ∈ adj+(e)</sub> g[f]  −  Σ<sub>f ∈ adj−(e)</sub> g[f])
+
+  adj+(e) = { f : src(f) = tgt(e) }
+  adj−(e) = { f : tgt(f) = src(e) }
+
+  ρ[e] = f(ρ<sub>base</sub>, χ[e], χ₀)   // RhoSaturatingForm — OPEN
+</div>
+
+<p>The adjacency structure is present in the declared topology:</p>
+
+<div class="math-block">
+  <span class="label">R structural prerequisites (present)</span>
+  adj+(e<sub>τI</sub>) = { e<sub>IV</sub> }    // tgt(e<sub>τI</sub>) = v<sub>ΔI</sub> = src(e<sub>IV</sub>)  ✓
+  adj−(e<sub>τI</sub>) = { }              // no edges end at src(e<sub>τI</sub>) in coupling sub-topology
+  adj+(e<sub>IV</sub>) = { }              // terminal
+  adj−(e<sub>IV</sub>) = { e<sub>τI</sub> }    // tgt(e<sub>τI</sub>) = v<sub>ΔI</sub> = src(e<sub>IV</sub>)  ✓
+</div>
+
+<div class="math-block">
+  <span class="label">R formulas given topology (prerequisites unfilled)</span>
+  R(g)[e<sub>τI</sub>] = g[e<sub>τI</sub>] + ρ[e<sub>τI</sub>] · (g[e<sub>IV</sub>] − 0)
+                       = Δ<sub>I</sub> + ρ[e<sub>τI</sub>] · Δ<sub>V</sub>
+
+  R(g)[e<sub>IV</sub>] = g[e<sub>IV</sub>] + ρ[e<sub>IV</sub>] · (0 − g[e<sub>τI</sub>])
+                       = Δ<sub>V</sub> − ρ[e<sub>IV</sub>] · Δ<sub>I</sub>
+</div>
+
+<p>The adj+/adj− tension described in <code>m_declaration.md</code> §5 as the
+<em>"succ − pred tension at each topology edge"</em> is structurally present. What is missing:</p>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Missing prerequisite</th><th>OPEN condition</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>ρ<sub>base</sub> — antisymmetric coupling weight</td><td>OC-FD-1</td><td><span class="badge open">OPEN</span></td></tr>
+    <tr><td>χ₀ — initial antisymmetric state</td><td>OC-FD-2</td><td><span class="badge open">OPEN</span></td></tr>
+    <tr><td>RhoSaturatingForm — functional form of ρ(ρ_base, χ, χ₀)</td><td>OC-M0R-1</td><td><span class="badge open">OPEN</span></td></tr>
+    <tr><td>RhoMaxSelectionRule — max-selection rule for χ</td><td>OC-M0R-2</td><td><span class="badge open">OPEN</span></td></tr>
+    <tr><td>χ[e] for acyclic path topology — no cycles present</td><td>OC-M0R-3</td><td><span class="badge open">OPEN</span></td></tr>
+    <tr><td>Cross-step topology declaration for physical cycle closure</td><td>OC-M0R-5</td><td><span class="badge open">OPEN</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TASK 4 — MINIMAL AI REPRESENTATION EXPERIMENT
+═══════════════════════════════════════════════════ -->
+<h2>Task 4 — Minimal AI representation experiment</h2>
+
+<p>The independently testable task: <em>given an admitted observation τ<sub>s</sub>(t),
+does the relational representation preserve the six evaluation criteria?</em></p>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>#</th><th>Criterion</th><th>Evidence in this domain</th><th>Finding</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>A.1</td>
+      <td>Observable provenance</td>
+      <td>τ<sub>s</sub>(t) declared through M as torque sensor output. Prior state
+      carried in A operator — no plant quantities enter. K<sub>T</sub>, R<sub>W</sub>
+      EvidenceDeclared through M.</td>
+      <td><span class="badge pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>A.2</td>
+      <td>Relational structure</td>
+      <td>Three directed edges with declared provenance (Persistence × 1, Coupling × 2).
+      Interior locus v<sub>ΔI</sub> satisfies region condition.</td>
+      <td><span class="badge pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>A.3</td>
+      <td>Sensitivity to changes</td>
+      <td>A<sub>out</sub> = τ<sub>s</sub>(t) − τ<sub>s</sub>(t−1). Any change in τ<sub>s</sub>
+      is immediately reflected in A<sub>out</sub> and propagated through B. A 25 N·m disturbance
+      produces A<sub>out</sub> = 25.000 N·m directly.</td>
+      <td><span class="badge pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>A.4</td>
+      <td>Reproducibility</td>
+      <td>Given identical {τ<sub>s</sub>(t), τ<sub>s</sub>(t−1), K<sub>T</sub>, R<sub>W</sub>},
+      A and B are deterministic. No randomness, no learned weights.</td>
+      <td><span class="badge pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>A.5</td>
+      <td>Domain boundaries</td>
+      <td>Admission rule |τ<sub>s</sub>| ≤ 68.57 N·m enforced before any operator.
+      Derived from declared electrical constants only. No plant quantities enter the bound.</td>
+      <td><span class="badge pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>A.6</td>
+      <td>Operator conformance</td>
+      <td>A: evaluated per Kernel V8 §10. B: evaluated per §11.1. R: NOT EVALUATED —
+      declared absent, not bypassed or zeroed. Declared-information rule preserved.</td>
+      <td><span class="badge pass">PASS (A, B)</span> <span class="badge defer">DEFERRED (R)</span></td>
+    </tr>
+    <tr>
+      <td>A.7</td>
+      <td>No language architecture</td>
+      <td>No tokens, embeddings, learned weights, neural-network layers, or language
+      model components are introduced. Computation is algebraic over a declared topology.</td>
+      <td><span class="badge pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>A.8</td>
+      <td>Relation as primitive</td>
+      <td>All outputs are directed relational differences (A<sub>out</sub>, Δ<sub>I</sub>,
+      Δ<sub>V</sub>), not absolute scalars. No isolated singleton values are operated on.</td>
+      <td><span class="badge pass">PASS</span></td>
+    </tr>
+    <tr>
+      <td>A.9</td>
+      <td>Transformation and attention</td>
+      <td>Representation task passes. Transformation (B traversal modifies relational field)
+      and attention (R selection operator on adj+/adj−) remain as subsequent independently
+      evaluated functions. R prerequisite declaration is the gate to attention evaluation.</td>
+      <td><span class="badge defer">DEFERRED</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TASK 5 — WORKED MATHEMATICAL EXAMPLE
+═══════════════════════════════════════════════════ -->
+<h2>Task 5 — Worked mathematical example</h2>
+
+<h3>5.1 Scenario — disturbance onset frame</h3>
+
+<p>Drawn from the documented simulation conditions in <code>abr_flex_demo.py</code>. The disturbance
+(DIST_MAG = 25.0 N·m) activates when θ ≥ THETA_CROSS = 10° = 0.1745 rad. The worked example
+uses the first frame after disturbance onset.</p>
+
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Quantity</th><th>Value</th><th>Source</th><th>In ABR path?</th></tr></thead>
+  <tbody>
+    <tr><td>θ (joint angle at onset)</td><td class="num">0.1745 rad (10°)</td><td>Encoder, declared simulation</td><td>C projection only</td></tr>
+    <tr><td>DIST_MAG (disturbance load)</td><td class="num">25.0 N·m</td><td>Plant simulation parameter</td><td><strong>No</strong> — plant only</td></tr>
+    <tr><td>MASS × G × ARM × sin(10°)</td><td class="num">2.553 N·m</td><td>Plant calculation (not in D)</td><td><strong>No</strong> — generates τ<sub>s</sub></td></tr>
+    <tr><td>τ<sub>s</sub>(t−1)</td><td class="num">2.553 N·m</td><td>Sensor output, prior step (admitted through M)</td><td><strong>Yes</strong></td></tr>
+    <tr><td>τ<sub>s</sub>(t)</td><td class="num">27.553 N·m</td><td>Sensor output, current step (admitted through M)</td><td><strong>Yes</strong></td></tr>
+    <tr><td>sigma_v initial</td><td class="num">0.000 V</td><td>Kernel initial state, declared simulation</td><td>Yes</td></tr>
+    <tr><td>θ<sub>target</sub></td><td class="num">0.3491 rad (20°)</td><td>Declared target, simulation condition</td><td>C projection only</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>5.2 Step-by-step calculation</h3>
+
+<h4>Step 1 — Admission through M</h4>
+<div class="calc-row">
+  <div class="calc-cell">
+    <div class="lhs">|τ<sub>s</sub>(t−1)| ≤ 68.57</div>
+    <div class="rhs">|2.553| = 2.553 ✓</div>
+    <div class="note">ADMITTED</div>
+  </div>
+  <div class="calc-cell">
+    <div class="lhs">|τ<sub>s</sub>(t)| ≤ 68.57</div>
+    <div class="rhs">|27.553| = 27.553 ✓</div>
+    <div class="note">ADMITTED</div>
+  </div>
+</div>
+
+<h4>Step 2 — A operator (persistence edge e<sub>persist</sub>)</h4>
+<div class="math-block">
+  A(x)[e<sub>persist</sub>] = x[v<sub>τ₁</sub>] − x[v<sub>τ₀</sub>]
+                             = 27.553 − 2.553
+                             = <strong>25.000 N·m</strong>
+
+  Source: directed difference, Kernel V8 §10.
+  K<sub>T</sub> and R<sub>W</sub> do not enter A.
+  MASS, ARM, G do not enter A.
+</div>
+
+<div class="calc-row">
+  <div class="calc-cell">
+    <div class="lhs">A<sub>out</sub></div>
+    <div class="rhs">25.000 N·m</div>
+    <div class="note">Established by frozen Kernel V8 mathematics</div>
+  </div>
+  <div class="calc-cell">
+    <div class="lhs">|A<sub>out</sub>| tolerance check</div>
+    <div class="rhs">25.000 &gt; 1e-12 ✓</div>
+    <div class="note">Above DETECTION_TOLERANCE (derived_invariants.rs)</div>
+  </div>
+</div>
+
+<h4>Step 3 — B operator (coupling sub-topology)</h4>
+<div class="math-block">
+  Edge field initialization:
+    g[e<sub>τI</sub>] = A<sub>out</sub> / K<sub>T</sub> = 25.000 / 1.0 = <strong>25.000 A</strong>
+    g[e<sub>IV</sub>] = g[e<sub>τI</sub>] × R<sub>W</sub> = 25.000 × 0.7 = <strong>17.500 V</strong>
+
+  B operator (Kernel V8 §11.1):
+    B(g)[e<sub>τI</sub>] = g[e<sub>τI</sub>] + g[e<sub>IV</sub>]   // succ(e<sub>τI</sub>) = {e<sub>IV</sub>}
+                         = 25.000 + 17.500 = <strong>42.500</strong>    (full tensor — see SF-2)
+
+    B(g)[e<sub>IV</sub>] = g[e<sub>IV</sub>]                         // succ(e<sub>IV</sub>) = {}
+                         = <strong>17.500 V</strong>                    (terminal; used by Sigma)
+</div>
+
+<div class="calc-row">
+  <div class="calc-cell">
+    <div class="lhs">Δ<sub>I</sub> = g[e<sub>τI</sub>]</div>
+    <div class="rhs">25.000 A</div>
+    <div class="note">Established — K<sub>T</sub> declared through M</div>
+  </div>
+  <div class="calc-cell">
+    <div class="lhs">Δ<sub>V</sub> = B(g)[e<sub>IV</sub>]</div>
+    <div class="rhs">17.500 V</div>
+    <div class="note">Established — R<sub>W</sub> declared through M</div>
+  </div>
+</div>
+<div class="calc-row">
+  <div class="calc-cell">
+    <div class="lhs">B(g)[e<sub>τI</sub>] — full tensor</div>
+    <div class="rhs">42.500</div>
+    <div class="note">Established but not currently consumed (SF-2)</div>
+  </div>
+  <div class="calc-cell">
+    <div class="lhs">B(g)[e<sub>IV</sub>] − B(g)[e<sub>τI</sub>]</div>
+    <div class="rhs">17.500 − 42.500 = −25.000</div>
+    <div class="note">adj+/adj− tension — structural prerequisite for R present ✓</div>
+  </div>
+</div>
+
+<h4>Step 4 — R operator</h4>
+
+<div class="finding open-cond">
+  <div class="find-id">R — NOT EVALUATED</div>
+  <p>The structural prerequisites for R are present: adj+(e<sub>τI</sub>) = {e<sub>IV</sub>} and
+  adj−(e<sub>IV</sub>) = {e<sub>τI</sub>}. The formulas R(g)[e<sub>τI</sub>] = Δ<sub>I</sub> +
+  ρ[e<sub>τI</sub>] · Δ<sub>V</sub> and R(g)[e<sub>IV</sub>] = Δ<sub>V</sub> − ρ[e<sub>IV</sub>] ·
+  Δ<sub>I</sub> are structurally determined. What is missing: ρ<sub>base</sub> (OC-FD-1),
+  χ₀ (OC-FD-2), χ[e] for acyclic path (OC-M0R-3), and RhoSaturatingForm (OC-M0R-1). No value
+  is substituted. Per declared-information rule §1: not-evaluated ≠ 0.0.</p>
+</div>
+
+<h4>Step 5 — Sigma accumulation</h4>
+<div class="math-block">
+  <span class="label">Sigma — declared accumulation (R bypassed due to OPEN)</span>
+  σ<sub>v</sub>(t) = σ<sub>v</sub>(t−1) + Δ<sub>V</sub>
+               = 0.000 + 17.500
+               = <strong>17.500 V</strong>
+
+  Note: if R were evaluated, Sigma would accumulate R(g)[e<sub>IV</sub>], not g[e<sub>IV</sub>].
+  This value is illustrative (simulation assumption: σ<sub>v</sub>(t−1) = 0.000 at disturbance onset).
+</div>
+
+<h4>Step 6 — C projection (not a kernel operator)</h4>
+<div class="math-block">
+  <span class="label">C — declared projection (m_declaration.md §5)</span>
+  frac  = clamp((θ<sub>target</sub> − θ) / θ<sub>target</sub>, −1, 1)
+        = clamp((0.3491 − 0.1745) / 0.3491, −1, 1)
+        = clamp(0.500, −1, 1) = 0.500
+
+  v<sub>cmd</sub> = σ<sub>v</sub> + frac × V<sub>RAISE</sub>
+         = 17.500 + 0.500 × 19.0
+         = <strong>27.000 V</strong>
+
+  Note: θ enters C only, not A/B/R. This is consistent with observable extent declaration.
+</div>
+
+<h3>5.3 Separation summary</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Result</th><th>Value</th><th>Source</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>A<sub>out</sub></td><td class="num">25.000 N·m</td>
+      <td>Kernel V8 §10 (frozen), admitted sensor values</td>
+      <td><span class="badge pass">ESTABLISHED</span></td>
+    </tr>
+    <tr>
+      <td>Δ<sub>I</sub></td><td class="num">25.000 A</td>
+      <td>Kernel V8 §11.1, declared K<sub>T</sub> = 1.0</td>
+      <td><span class="badge pass">ESTABLISHED</span></td>
+    </tr>
+    <tr>
+      <td>Δ<sub>V</sub> = B(g)[e<sub>IV</sub>]</td><td class="num">17.500 V</td>
+      <td>Kernel V8 §11.1, declared R<sub>W</sub> = 0.7</td>
+      <td><span class="badge pass">ESTABLISHED</span></td>
+    </tr>
+    <tr>
+      <td>B(g)[e<sub>τI</sub>] full tensor</td><td class="num">42.500</td>
+      <td>Kernel V8 §11.1; not currently consumed (SF-2)</td>
+      <td><span class="badge pass">ESTABLISHED</span> <span class="badge open">SF-2 OPEN</span></td>
+    </tr>
+    <tr>
+      <td>R(g)[e<sub>τI</sub>], R(g)[e<sub>IV</sub>]</td><td class="num">—</td>
+      <td>Requires ρ<sub>base</sub>, χ₀, χ[e], RhoSaturatingForm</td>
+      <td><span class="badge open">OPEN</span></td>
+    </tr>
+    <tr>
+      <td>σ<sub>v</sub>(t)</td><td class="num">17.500 V</td>
+      <td>Declared accumulation; σ<sub>v</sub>(t−1) = 0.000 assumed for this frame</td>
+      <td><span class="badge defer">ILLUSTRATIVE</span></td>
+    </tr>
+    <tr>
+      <td>v<sub>cmd</sub></td><td class="num">27.000 V</td>
+      <td>C projection; V<sub>RAISE</sub> = 19.0, θ at declared onset</td>
+      <td><span class="badge defer">ILLUSTRATIVE</span></td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<!-- ═══════════════════════════════════════════════════
+     TASK 6 — M0 HANDOFF
+═══════════════════════════════════════════════════ -->
+<h2>Task 6 — Revised M0 handoff</h2>
+
+<h3>6.1 Revised declaration D and M</h3>
+
+<p><strong>Domain D:</strong> 4 loci (v<sub>τ₀</sub>, v<sub>τ₁</sub>, v<sub>ΔI</sub>,
+v<sub>ΔV</sub>), 3 directed edges (e<sub>persist</sub>, e<sub>τI</sub>, e<sub>IV</sub>),
+1 interior locus (v<sub>ΔI</sub>). Single-step acyclic DAG topology.</p>
+
+<p><strong>Mapping M:</strong> Admission rule |τ<sub>s</sub>| ≤ 68.57 N·m (derived from
+declared electrical constants). Observable extent: τ<sub>s</sub>, θ, v<sub>cmd</sub>.
+Excluded: MASS, ARM, G, I_EFF, DAMPING.</p>
+
+<h3>6.2 Relational cardinality</h3>
+<div class="calc-row">
+  <div class="calc-cell"><div class="lhs">Loci</div><div class="rhs">4</div></div>
+  <div class="calc-cell"><div class="lhs">Directed edges</div><div class="rhs">3</div></div>
+  <div class="calc-cell"><div class="lhs">Interior loci</div><div class="rhs">1 (v<sub>ΔI</sub>)</div></div>
+  <div class="calc-cell"><div class="lhs">Cycles in single-step topology</div><div class="rhs">0</div></div>
+</div>
+
+<h3>6.3 PASS / FAIL / OPEN findings</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>ID</th><th>Subject</th><th>Finding</th></tr></thead>
+  <tbody>
+    <tr><td>F-1</td><td>A operator, disturbance frame</td><td><span class="badge pass">PASS</span> — A<sub>out</sub> = 25.000 N·m established by frozen mathematics</td></tr>
+    <tr><td>F-2</td><td>B operator, coupling traversal</td><td><span class="badge pass">PASS</span> — Δ<sub>I</sub> = 25.000 A, Δ<sub>V</sub> = 17.500 V established</td></tr>
+    <tr><td>F-3</td><td>Interior-locus condition</td><td><span class="badge pass">PASS</span> — v<sub>ΔI</sub> satisfies region.rs condition</td></tr>
+    <tr><td>F-4</td><td>Observable provenance preservation</td><td><span class="badge pass">PASS</span> — no plant quantities enter A, B, or admission</td></tr>
+    <tr><td>F-5</td><td>R operator</td><td><span class="badge open">OPEN</span> — structural prerequisites present; 5 missing declarations (OC-FD-1/2, OC-M0R-1/3/5)</td></tr>
+    <tr><td>SF-1</td><td>Physical cycle vs. mathematical circulation</td><td><span class="badge open">NEW FINDING</span> — single-step topology is acyclic; χ[e] requires cycles; cross-step topology not declared</td></tr>
+    <tr><td>SF-2</td><td>B full tensor vs. demo usage</td><td><span class="badge open">NEW FINDING</span> — B(g)[e<sub>τI</sub>] = 42.500 present but not consumed; OC-M0R-6 returned</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>6.4 Complete OPEN conditions register</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>ID</th><th>Description</th><th>Source</th><th>Returned to Origin</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>OC-FD-1</td>
+      <td>ρ<sub>base</sub> — antisymmetric coupling weight between torque and voltage domains</td>
+      <td>m_declaration.md §6</td>
+      <td>Yes — requires M declaration</td>
+    </tr>
+    <tr>
+      <td>OC-FD-2</td>
+      <td>χ₀ — initial antisymmetric state for R operator</td>
+      <td>m_declaration.md §6</td>
+      <td>Yes — requires M declaration</td>
+    </tr>
+    <tr>
+      <td>OC-M0R-1</td>
+      <td>RhoSaturatingForm — functional form of ρ(ρ<sub>base</sub>, χ, χ₀)</td>
+      <td>Kernel V8 §11.2; carried from m0_spec.html</td>
+      <td>Yes — requires Kernel V9 authorization</td>
+    </tr>
+    <tr>
+      <td>OC-M0R-2</td>
+      <td>RhoMaxSelectionRule — max-selection rule for χ</td>
+      <td>Kernel V8 §11.2; carried from m0_spec.html</td>
+      <td>Yes — requires Kernel V9 authorization</td>
+    </tr>
+    <tr>
+      <td>OC-M0R-3</td>
+      <td>χ[e] for acyclic path topology — carried from m0_spec.html</td>
+      <td>m0_spec.html OPEN #3</td>
+      <td>Yes — no cycles in single-step topology</td>
+    </tr>
+    <tr>
+      <td>OC-M0R-4</td>
+      <td>Parameter provenance — all declared values are EvidenceDeclared, not ObservationallyVerified</td>
+      <td>m0_spec.html OPEN #4; carried</td>
+      <td>Informational — no VerificationRecord submitted</td>
+    </tr>
+    <tr>
+      <td>OC-M0R-5</td>
+      <td><strong>NEW:</strong> Cross-step topology — physical feedback cycle crosses step boundaries; single-step topology is acyclic; cross-step edge v<sub>ΔV</sub>(t)→v<sub>τ₁</sub>(t+1) not declared</td>
+      <td>SF-1, this revision</td>
+      <td>Yes — required for R circulation to be defined</td>
+    </tr>
+    <tr>
+      <td>OC-M0R-6</td>
+      <td><strong>NEW:</strong> B full tensor usage — B(g)[e<sub>τI</sub>] = Δ<sub>I</sub> + Δ<sub>V</sub> produced but not consumed; Sigma currently uses only B(g)[e<sub>IV</sub>] = Δ<sub>V</sub></td>
+      <td>SF-2, this revision</td>
+      <td>Yes — Origin to determine which B outputs feed Sigma</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>6.5 Acceptance criteria</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>#</th><th>Criterion</th><th>Status</th></tr></thead>
+  <tbody>
+    <tr><td>AC-1</td><td>Domain D derived from declared physical observables only — no invented measurements</td><td><span class="badge pass">PASS</span></td></tr>
+    <tr><td>AC-2</td><td>Declared coupling constants K<sub>T</sub>, R<sub>W</sub> appear in topology, not derived from plant geometry</td><td><span class="badge pass">PASS</span></td></tr>
+    <tr><td>AC-3</td><td>Plant quantities (MASS, ARM, G) absent from operator path</td><td><span class="badge pass">PASS</span></td></tr>
+    <tr><td>AC-4</td><td>A evaluated per Kernel V8 §10 — no independent update rule</td><td><span class="badge pass">PASS</span></td></tr>
+    <tr><td>AC-5</td><td>B evaluated per Kernel V8 §11.1 — full tensor computed and reported</td><td><span class="badge pass">PASS</span></td></tr>
+    <tr><td>AC-6</td><td>R not evaluated — declared-information rule preserved, no substitute formula</td><td><span class="badge pass">PASS</span></td></tr>
+    <tr><td>AC-7</td><td>OPEN conditions returned to Origin — no invented parameter values</td><td><span class="badge pass">PASS</span></td></tr>
+    <tr><td>AC-8</td><td>Physical feedback cycle distinguished from mathematical circulation</td><td><span class="badge pass">PASS</span></td></tr>
+    <tr><td>AC-9</td><td>Previous M0 spec preserved as historical evidence</td><td><span class="badge pass">PASS</span></td></tr>
+    <tr><td>AC-10</td><td>No tokens, embeddings, learned weights, or neural-network components introduced</td><td><span class="badge pass">PASS</span></td></tr>
+  </tbody>
+</table>
+</div>
+
+<h3>6.6 Pinned source and kernel revisions</h3>
+<div class="tbl-wrap">
+<table>
+  <thead><tr><th>Repository</th><th>Commit / tag</th><th>Role</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>abr-robotics-demo</td>
+      <td class="num"><code>09ea3052dbb0fb0c6e8d985bb026591080848401</code></td>
+      <td>Source domain — V0.5.2 — 2026-10-06</td>
+    </tr>
+    <tr>
+      <td>abr-irrs (irrs-kernel)</td>
+      <td class="num"><code>Kernel V8 (2026-09-27; discipline 2026-09-29)</code></td>
+      <td>Mathematical authority — frozen — operators.rs line 26</td>
+    </tr>
+    <tr>
+      <td>abr-minimal-ai</td>
+      <td class="num"><code>m0_spec.html</code> (commit 8cdf9e3)</td>
+      <td>Historical evidence — abstract 3-node spec — 2026-10-25</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<h3>6.7 Proposed M1 implementation scope</h3>
+
+<p>M1 implementation is not authorized. The following scope is proposed for Origin review,
+contingent on resolution of OPEN conditions:</p>
+
+<ul>
+  <li><strong>Prerequisite:</strong> Declaration of ρ<sub>base</sub> (OC-FD-1) and χ₀ (OC-FD-2) through M</li>
+  <li><strong>Prerequisite:</strong> Resolution of χ[e] for the two-edge coupling path or authorization of a cross-step topology (OC-M0R-3 / OC-M0R-5)</li>
+  <li><strong>Prerequisite:</strong> Authorization of RhoSaturatingForm and RhoMaxSelectionRule (OC-M0R-1/2)</li>
+  <li><strong>Prerequisite:</strong> Decision on B full tensor usage (OC-M0R-6)</li>
+  <li><strong>Scope:</strong> Once prerequisites are declared, implement the minimal relational core in Rust following the established IRRS pattern, targeting the A→B→R operator chain over the four-locus sensor–actuator topology</li>
+</ul>
+
+<div class="stop-box">
+  <h4>Stop condition</h4>
+  <p>M0 revision is complete. No implementation modules have been created. No AI architecture
+  has been introduced. No M1 work has been initiated. Six OPEN conditions are returned to Origin.
+  Origin authorization is required before any of the following proceed: M1 implementation,
+  Kernel V8 modification, ρ<sub>base</sub> or χ₀ declaration, or cross-step topology declaration.</p>
+</div>
+
+<hr>
+<p style="color: var(--fg3); font-size: 0.82rem; margin-top: 1.5rem;">
+  Generator: Claude Sonnet 4.6 ·
+  Session: <a href="https://claude.ai/code/session_01CFPKeATovNRJR4oHjYyLM6">session_01CFPKeATovNRJR4oHjYyLM6</a> ·
+  Kernel authority: <a href="https://github.com/Relational-Relativity-Corporation/abr-irrs">abr-irrs</a> operators.rs ·
+  Source domain: <a href="https://github.com/Relational-Relativity-Corporation/abr-robotics-demo">abr-robotics-demo</a> V0.5.2
+</p>
+
+</div>
