@@ -448,16 +448,16 @@ R[0][e_τV] = B[0][e_τV]
 R[0][e_τV] = B[0][e_τV] = τ_s × R_W/K_T             [V]
 ```
 
-The B value is known exactly from admitted observables and declared constants. The antisymmetric ρ contribution is structurally zero.
+The B value is known exactly from admitted observables and declared constants. The antisymmetric ρ contribution propagates to zero in the output — but ρ is computed.
 
-**Numerical evaluation requiring ρ_base:**
+**Numerical evaluation (ρ is live at each step):**
 
 ```
 ρ[e_τV] = ρ_base × chi[v_τ] / (χ₀ + chi[v_τ])
          = ρ_base × (τ_s × R_W/K_T) / (V_BUS + τ_s × R_W/K_T)  [dimensionless]
 ```
 
-This is computable once ρ_base is declared, but its product with zero leaves R[0][e_τV] = B[0][e_τV] regardless. The structural zero is a property of the topology (relational_isolation = true), not of the ρ value.
+ρ[e_τV] is a non-zero evaluated quantity at every step (ρ_base × 0.2866 for the disturbance example). It multiplies Σ_succ − Σ_pred, which is zero by topology structure (relational_isolation = true). The zero propagated into R[0][e_τV] is the product of a live ρ value and a structurally empty adjacency sum — not the absence of ρ. ρ_base governs a running quantity.
 
 **Same analysis for Phase 2 R_p:**
 
@@ -510,7 +510,15 @@ Both must be declared through M before evaluation. Neither has a default.
 - ρ_base becomes numerically significant only when the topology is extended to include interior nodes (multi-edge path where adj⁺ or adj⁻ is non-empty)
 - Physical interpretation: the dimensionless ceiling on how strongly R modifies B in the presence of antisymmetric torque-voltage tension
 
-**OPEN: OC-FD-1.** ρ_base must be declared by Origin before evaluation. Its contribution to M0 is structurally zero; its value matters for topology extensions.
+**OPEN: OC-FD-1.** ρ_base must be declared by Origin before evaluation.
+
+ρ[e_τV] is computed at every step of the running system:
+
+```
+ρ[e_τV] = ρ_base × chi[v_τ] / (V_BUS + chi[v_τ])
+```
+
+For the disturbance step example: ρ[e_τV] = ρ_base × 0.2866. This is a live, non-zero quantity in each evaluation. Its product with the antisymmetric coefficient (Σ_succ − Σ_pred = 0 for the 1-edge topology) is zero by topology structure, so ρ does not propagate into the R output for M0. But ρ is evaluated — it is not absent or inert. ρ_base governs an active computed quantity in the running system. The structural zero of the antisymmetric term is a topology property, not a declaration that ρ_base is irrelevant.
 
 **OC-M0R-1 (saturating form of ρ):** The functional form `ρ_base × χ/(χ₀ + χ)` is stated in the kernel implementation but its derivation is not closed. Whether a different functional form is correct requires Origin confirmation. This is independent of ρ_base's value.
 
@@ -524,7 +532,7 @@ Both must be declared through M before evaluation. Neither has a default.
 | cc | [] | k=1, no comp_pairs; empty cc satisfies require_cc_declaration | **RESOLVED** |
 | ρ_base (units) | dimensionless | Unit analysis of ρ × (V) + B[V] = R[V] | **RESOLVED** |
 | max-sel. rule | trivial (k=1) | Single component, no multi-dim comparison | **RESOLVED** |
-| ρ_base (value) | (undeclared) | No declared domain constant determines it | **OPEN: OC-FD-1** |
+| ρ_base (value) | (undeclared) | No declared domain constant determines it; ρ is computed live each step | **OPEN: OC-FD-1** |
 | Saturating form | as-implemented | Derivation of χ/(χ₀+χ) not closed | **OPEN: OC-M0R-1** |
 
 ---
@@ -691,7 +699,7 @@ v_cmd   = σ_v(t) + frac × V_RAISE                         [V]
 
 **Relational isolation:**
 
-The corrected M0 topology has relational_isolation = true. The R antisymmetric term is structurally zero in both Phase 1 and Phase 2. ρ_base's numerical contribution to M0 outputs is zero by topology structure. ρ_base becomes non-trivially significant when the topology is extended to a multi-edge path with interior nodes.
+The corrected M0 topology has relational_isolation = true. ρ[e_τV] is computed at every evaluation as a live non-zero quantity (= ρ_base × chi/(V_BUS + chi)). Its product with Σ_succ − Σ_pred is zero by topology structure (adj⁺ and adj⁻ empty). The R antisymmetric term propagates to zero in the output; ρ itself does not. ρ_base governs an active computed quantity in the running system. OC-FD-1 is an active open condition, not a deferred one.
 
 ---
 
